@@ -429,3 +429,36 @@ def test_journal_denied_hook(tree: Path, monkeypatch):
     monkeypatch.setattr("sys.stdin", io.StringIO("not json"))
     assert main(["--root", str(tree), "journal", "--denied", "--now", "2026-09-08T12:01:00-06:00"]) == 0
     assert "- 12:01 denied: unknown tool null" in (tree / "journal" / "2026" / "09-08.md").read_text()
+
+
+def test_init_builds_a_clean_tree(tmp_path: Path, capsys):
+    root = tmp_path / "state"
+    assert main(["--root", str(root), "init", "--owner", "Test Person", "--timezone", "America/Denver",
+                 "--sms", "+15555550100", "--version", "v0.1.0", "--no-lock"]) == 0
+    assert lint(root) == []
+    assert (root / "GUIDE.md").read_text() == (FIXTURE / "GUIDE.md").read_text()
+    assert (root / "CLAUDE.md").read_text().startswith("@GUIDE.md\n@LOCAL.md\n")
+    assert 'life @ git+https://github.com/ddrinka/Life@v0.1.0' in (root / "pyproject.toml").read_text()
+    local = (root / "LOCAL.md").read_text()
+    assert local.startswith('---\nowner: "Test Person"\ntimezone: America/Denver\nsms: "+15555550100"\n---\n')
+    assert "## Email rules" in local
+    assert (root / "cursors" / "runs.json").read_text() == "{}\n"
+    assert "Nothing is in focus." in (root / "MAP.md").read_text()
+    assert (root / ".claude" / "settings.json").exists() and (root / ".gitignore").exists()
+    assert main(["--root", str(root), "init", "--owner", "X", "--timezone", "UTC", "--no-lock"]) == 2
+    assert "not empty" in capsys.readouterr().err
+
+
+def test_sync_files_and_upgrade_rewrite_managed_files(tree: Path, capsys):
+    from life import scaffold
+    (tree / "CLAUDE.md").write_text("tampered\n")
+    (tree / ".claude").mkdir()
+    (tree / ".claude" / "settings.json").write_text("{}")
+    assert main(["--root", str(tree), "sync-files"]) == 0
+    assert (tree / "CLAUDE.md").read_text() == (scaffold.templates_dir() / "CLAUDE.md").read_text()
+    assert "permissions" in (tree / ".claude" / "settings.json").read_text()
+    (tree / "LOCAL.md").write_text((tree / "LOCAL.md").read_text() + "\n- kept\n")
+    assert main(["--root", str(tree), "upgrade", "v9.9.9", "--no-sync"]) == 0
+    assert "@v9.9.9" in (tree / "pyproject.toml").read_text()
+    assert (tree / "LOCAL.md").read_text().endswith("- kept\n")
+    assert (tree / "MAP.md").read_text().startswith("# Map")

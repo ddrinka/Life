@@ -2,14 +2,14 @@
 
 This repository is the tooling. It holds the `life` CLI, the guide that agents follow, and
 the skills that scheduled runs invoke. It holds no personal data. Each person who uses it
-keeps a private state repository, created from the template in `templates/`. That
+keeps a private state repository, created from the template in `src/life/templates/`. That
 repository holds their projects, tasks, journal, and a pin to a released version of this
 tooling. Doug's state repository is
 [ddrinka/life-ddrinka](https://github.com/ddrinka/life-ddrinka).
 
-- A state repository starts from `templates/`, and `life upgrade` refreshes those files.
+- A state repository starts from `src/life/templates/`, and `life upgrade` refreshes those files.
   The rules agents follow inside a state repository are in
-  [templates/GUIDE.md](templates/GUIDE.md).
+  [src/life/templates/GUIDE.md](src/life/templates/GUIDE.md).
 - `src/`, `tests/`, and `fixture/` are the tooling. `fixture/` is a small state tree that
   tests run against.
 - [TODO.md](TODO.md) and this file track tooling work. A bounded piece of work gets its
@@ -116,7 +116,7 @@ arrives through the pin. Attaching the tooling repository as a second repository
 give the run the default branch rather than a release, so the routine does not do that.
 
 The dev container ignores `CLAUDE.md` through `.git/info/exclude` because it generates
-the root one, so `templates/CLAUDE.md` was added with `git add -f` and stays tracked.
+the root one, so `src/life/templates/CLAUDE.md` was added with `git add -f` and stays tracked.
 
 For developing the tooling, this repository carries `fixture/`, a small state tree that
 tests run against. For trying changes against live data, clone a state repository into
@@ -216,6 +216,21 @@ crashing.
 
 Done items are left out.
 
+`life init` builds a state repository in an empty directory: the tree directories, the
+managed files, a `LOCAL.md` with this person's frontmatter, an empty `cursors/runs.json`,
+a `pyproject.toml` that pins the tooling to a git tag, a generated `MAP.md`, and
+`uv.lock`. `life upgrade [VERSION]` rewrites the pin, runs `uv sync` so the new tooling
+is installed, then runs `life sync-files` and `life map` from that new install, so the
+managed files always come from the version the pin names. `life sync-files` alone
+rewrites the managed files from whatever tooling is installed. The templates ship
+inside the package under `src/life/templates/`, which is why the package can build a
+state repository from a plain install. `LOCAL.md` is never rewritten.
+
+```
+uv run life --root ../life-me init --owner "Name" --timezone America/Denver --sms "+1555..."
+uv run life upgrade v0.2.0
+```
+
 `life journal` appends one entry to today's file, using the owner's timezone from
 `LOCAL.md` frontmatter. It creates the file with its date header when the day has none.
 `--denied` reads a `PermissionDenied` hook payload from stdin and records the blocked
@@ -252,7 +267,7 @@ cannot do.
   anything needing a decision and records it in the journal.
 - **`autoMode` entries in the owner's `~/.claude/settings.json`.** The classifier ignores
   `autoMode` in project settings. Trusted infrastructure and hard denies for interactive
-  sessions therefore ship as `templates/auto-mode.settings.json`, which the owner merges
+  sessions therefore ship as `src/life/templates/auto-mode.settings.json`, which the owner merges
   into their user settings.
 
 The dividing line is whether an action leaves the owner's accounts. Actions that stay

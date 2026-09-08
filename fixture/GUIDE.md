@@ -1,1 +1,1 @@
-../templates/GUIDE.md
+../src/life/templates/GUIDE.md

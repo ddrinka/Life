@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import datetime as dt
+import subprocess
 import sys
 from pathlib import Path
 
@@ -11,6 +12,7 @@ from . import journal as journal_mod
 from . import lint as lint_mod
 from . import mapgen
 from . import query as query_mod
+from . import scaffold
 from .model import DOMAINS, KINDS, STATUSES, TIERS
 
 
@@ -55,6 +57,21 @@ def build_parser() -> argparse.ArgumentParser:
     p_journal.add_argument("text", nargs="?", help="the entry; slugs it touches go in backticks")
     p_journal.add_argument("--denied", action="store_true", help="read a PermissionDenied hook payload from stdin")
     p_journal.add_argument("--now", type=_datetime, default=None, help="override the current time, for tests")
+
+    p_init = sub.add_parser("init", help="create a state repository at --root")
+    p_init.add_argument("--owner", required=True, help="the person's name")
+    p_init.add_argument("--timezone", required=True, help="IANA zone, like America/Denver")
+    p_init.add_argument("--sms", default=None, help="E.164 number the brief is sent to")
+    p_init.add_argument("--version", default=None, help="tooling tag to pin, default: the installed version")
+    p_init.add_argument("--tooling", default=scaffold.TOOLING_URL, help="tooling repository URL")
+    p_init.add_argument("--no-lock", action="store_true", help="skip `uv lock`")
+
+    p_up = sub.add_parser("upgrade", help="pin another tooling version and refresh the managed files")
+    p_up.add_argument("version", nargs="?", default=None, help="tooling tag, default: the installed version")
+    p_up.add_argument("--tooling", default=scaffold.TOOLING_URL, help="tooling repository URL")
+    p_up.add_argument("--no-sync", action="store_true", help="rewrite files from the installed tooling without `uv sync`")
+
+    sub.add_parser("sync-files", help="rewrite the managed files from the installed tooling")
     return parser
 
 
@@ -64,9 +81,27 @@ def main(argv: list[str] | None = None) -> int:
             stream.reconfigure(errors="backslashreplace")
     args = build_parser().parse_args(argv)
     root: Path = args.root.resolve()
+    if args.command == "init":
+        return _init(root, args)
     if not root.is_dir():
         print(f"{root} is not a directory", file=sys.stderr)
         return 2
+
+    if args.command == "upgrade":
+        version = args.version or scaffold.installed_version()
+        try:
+            steps = scaffold.upgrade(root, version, args.tooling, sync=not args.no_sync)
+        except (OSError, subprocess.CalledProcessError) as exc:
+            print(f"upgrade failed: {exc}", file=sys.stderr)
+            return 1
+        print("\n".join(steps))
+        print("Review the changes, then commit and push.")
+        return 0
+
+    if args.command == "sync-files":
+        for path in scaffold.sync_files(root):
+            print(f"wrote {path.relative_to(root)}")
+        return 0
 
     if args.command == "journal":
         return _journal(root, args)
@@ -110,6 +145,21 @@ def main(argv: list[str] | None = None) -> int:
         return 0
 
     return 2
+
+
+def _init(root: Path, args) -> int:
+    if root.exists() and any(p for p in root.iterdir() if p.name not in (".git",)):
+        print(f"{root} is not empty; init only builds a new tree", file=sys.stderr)
+        return 2
+    version = args.version or scaffold.installed_version()
+    try:
+        steps = scaffold.init(root, args.owner, args.timezone, args.sms, version, args.tooling, lock=not args.no_lock)
+    except (OSError, subprocess.CalledProcessError) as exc:
+        print(f"init failed: {exc}", file=sys.stderr)
+        return 1
+    print("\n".join(steps))
+    print("Next: edit LOCAL.md, then commit and push.")
+    return 0
 
 
 def _journal(root: Path, args) -> int:

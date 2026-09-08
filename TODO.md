@@ -4,20 +4,20 @@ Phases and gates are explained in IMPLEMENTATION.md. "human" marks a step Doug d
 
 ## Phase 1: Foundation
 
-- [ ] Rename the project in `pyproject.toml`, add the `life` entry point, and pin dependencies
-- [ ] Write the frontmatter schema and tree loader, then the three commands below in parallel
-- [ ] Build `life lint`: schema, enums, dates, size limits, symmetric `related`, journal immutability
-- [ ] Build `life map`: generate MAP.md from frontmatter
-- [ ] Build `life query`: filter by kind, domain, tier, status, due, review
-- [ ] Create `fixture/` with projects, areas, tasks, a person, journal days, and cursors
-- [ ] Write tests for lint, map, and query against the fixture
-- [ ] Gate (human): Doug reads a generated MAP.md and approves its shape
+- [x] Rename the project in `pyproject.toml`, add the `life` entry point, and pin dependencies
+- [x] Write the frontmatter schema and tree loader, then the three commands below in parallel
+- [x] Build `life lint`: schema, enums, dates, size limits, symmetric `related`, journal immutability
+- [x] Build `life map`: generate MAP.md from frontmatter
+- [x] Build `life query`: filter by kind, domain, tier, status, due, review
+- [x] Create `fixture/` with projects, areas, tasks, a person, journal days, and cursors
+- [x] Write tests for lint, map, and query against the fixture
+- [x] Gate (human): Doug reads a generated MAP.md and approves its shape
 
 ## Phase 2: State repository
 
-- [ ] Finish `templates/`: add .gitignore and lint LOCAL.md frontmatter (owner, timezone, sms)
-- [ ] Build `life init`: create a state repository from `templates/` with the pin
-- [ ] Build `life upgrade`: bump the pin and rewrite the managed files
+- [x] Finish `src/life/templates/`: add .gitignore and lint LOCAL.md frontmatter (owner, timezone, sms)
+- [x] Build `life init`: create a state repository from `src/life/templates/` with the pin
+- [x] Build `life upgrade`: bump the pin and rewrite the managed files
 - [ ] Tag the first release and push it (human approves the push)
 - [ ] Run `life init` in `life-ddrinka` and push the initial commit
 - [ ] Seed `life-ddrinka` from conversation with Doug (human)
@@ -25,12 +25,12 @@ Phases and gates are explained in IMPLEMENTATION.md. "human" marks a step Doug d
 
 ## Phase 3: Scheduled runs
 
-- [ ] Write the `daily-brief`, `weekly-review`, and `monthly-sweep` skills under `templates/.claude/skills/`
+- [ ] Write the `daily-brief`, `weekly-review`, and `monthly-sweep` skills under `src/life/templates/.claude/skills/`
 - [ ] Build `life brief`: compose the spoken update from MAP.md and the journal since the last brief
 - [ ] Define `cursors/runs.json` fields and run a few manual sessions
 - [ ] Create Doug's cloud environment with the state repository and network settings (human)
 - [ ] Create the daily and weekly routines, each invoking its skill
-- [ ] Merge `templates/auto-mode.settings.json` into the owner's user settings (human)
+- [ ] Merge `src/life/templates/auto-mode.settings.json` into the owner's user settings (human)
 - [ ] Test whether a routine runs in auto mode, and whether `mcp__*__send*` deny patterns match
 - [ ] Test that a planted instruction in a fixture email is logged in the journal and not acted on
 - [ ] Gate: a routine run commits a journal entry and a fresh MAP.md unattended
