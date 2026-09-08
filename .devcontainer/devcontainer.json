@@ -1,0 +1,32 @@
+{
+	"name": "Python 3.13",
+	"initializeCommand": [
+		"git",
+		"-c",
+		"safe.directory=*",
+		"-c",
+		"alias.devc-sync=!if [ -d .devcontainer/base/.git ]; then git -C .devcontainer/base pull -q --ff-only || echo 'devcontainer base: pull failed, keeping the existing clone' >&2; else git clone -q --depth 1 --branch main https://github.com/ddrinka/DevContainer .devcontainer/base || exit 1; fi; x=$(git rev-parse --git-path info/exclude); mkdir -p \"${x%/*}\"; for p in .devcontainer/base/ CLAUDE.md .devcontainer/devcontainer-lock.json; do grep -qxF \"$p\" \"$x\" 2>/dev/null || echo \"$p\" >> \"$x\"; done",
+		"devc-sync"
+	],
+	"build": {
+		"dockerfile": "base/images/Dockerfile"
+	},
+	"features": {
+		"./base/features/agentic": {},
+		"ghcr.io/devcontainers/features/docker-in-docker@sha256:7d979c4a36d595eb4ab79909caa3f396daf3b6152dcf38e8328ea4eff42206c7": {
+			"moby": false
+		}
+	},
+	"customizations": {
+		"vscode": {
+			"extensions": [
+				"ms-toolsai.jupyter"
+			]
+		}
+	},
+	"updateContentCommand": [
+		"/bin/bash",
+		"-c",
+		".devcontainer/on_update.sh"
+	]
+}

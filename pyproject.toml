@@ -1,0 +1,6 @@
+[project]
+name = "python313-agentic-template"
+version = "0.1.0"
+description = "Template for Python 3.13 projects built by agent teams."
+requires-python = ">=3.13"
+dependencies = []
