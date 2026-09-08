@@ -6,7 +6,6 @@ tier: background
 status: active
 touched: 2026-09-05
 review: 2026-10-01
-related: [deck-replacement]
 ---
 
 ## Goal

@@ -6,7 +6,6 @@ tier: focus
 status: active
 next: Send the September status note by the 10th
 touched: 2026-09-07
-related: [billing-migration]
 ---
 
 ## Goal

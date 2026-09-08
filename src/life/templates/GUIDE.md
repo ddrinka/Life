@@ -58,7 +58,8 @@ next: Get two more quotes by Friday   # required for every open focus item
 touched: 2026-09-08      # last time the file changed for a real reason
 review: 2026-09-15       # optional; when an agent should look at this again, any kind
 due: 2026-09-20          # optional; tasks only
-parent: house            # optional; tasks only; an open project or area
+parent: house            # optional; a project's parent is an area, a task's is either
+links: [ddrinka/Fire]    # optional; repos, issues, documents, accounts where detail lives
 related: [house, contractor-jim]   # optional; slugs of active files
 source: https://...      # optional; the email, issue, or document this came from
 ---
@@ -69,6 +70,9 @@ Body sections are level-two headings, in this order, omitting empty ones:
 - **Goal.** One or two sentences.
 - **State.** What is true right now. Rewrite this; do not append to it.
 - **Steps.** A checklist of what is left. Delete done steps rather than checking them.
+- **Questions.** One bullet per thing only the owner can answer. The brief reads these
+  out; the owner answers in conversation; the agent records the answer and removes the
+  bullet.
 - **Decisions.** One line each, dated, with the reason. Never delete.
 - **Notes.** Anything else the next agent needs.
 
@@ -104,6 +108,10 @@ Body sections are level-two headings, in this order, omitting empty ones:
 - **Establish the time first.** Cloud runs are in UTC. Every run works out the current
   time in the owner's timezone, read from `LOCAL.md`, and writes it at the top of its
   journal entry.
+- **Store pointers and conclusions, not copies.** Detail lives where it already is: a
+  repository, an issue, an account. `links` names those places and an agent reads them
+  for depth. State is rewritten from the links, never from the old State. A dated fact
+  goes in the journal. Nothing in this tree is a research dump.
 - **Email and calendar are mirrored, not owned.** Store the summary and the link or
   message ID. The body stays in Google. Email is never sent, replied to, or deleted.
   An agent may draft email, create events with no attendees, and label and archive a

@@ -91,6 +91,8 @@ def _cross_file_problems(tree: Tree) -> list[Problem]:
             target = by_slug.get(parent)
             if target is None or not target.is_open:
                 problems.append(Problem(_rel(tree.root, e.path), f"parent '{parent}' is not an open file"))
+            elif e.kind == "project" and target.kind != "area":
+                problems.append(Problem(_rel(tree.root, e.path), f"parent '{parent}' must be an area"))
             elif target.kind not in ("project", "area"):
                 problems.append(Problem(_rel(tree.root, e.path), f"parent '{parent}' must be a project or an area"))
     return problems

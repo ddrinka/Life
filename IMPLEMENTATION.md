@@ -85,6 +85,26 @@ file. A step with a due date or a source link becomes a task file, as does anyth
 stands on its own. This keeps the file count near the number of things worth tracking
 separately.
 
+### Pointers, not copies
+
+A project file holds what an agent needs to act and nothing else. Its `links` list names
+where the detail lives: repositories, issues, documents, accounts. An agent reads those
+for depth and rewrites State from them, so status is re-derived from the source each run
+instead of remembered. Dated facts go in the journal, which cannot go stale because every
+line says when it was true. Stable background stays in the linked repositories. There is
+no research notes file, because that is the file that rots.
+
+A project's `parent` is an area, and a task's parent is a project or an area, so the tree
+is at most three levels deep with no directory nesting. The map groups focus items by
+area.
+
+### Questions as the collaboration loop
+
+The owner brings notes, not background. When an agent researches a project and hits
+something only the owner knows, it writes a bullet under that file's Questions heading.
+The map lists every open question and the brief reads them out. The owner answers in
+conversation, and the agent records the answer where it belongs and removes the bullet.
+
 ### Files, not GitHub Issues
 
 Files are the source of truth. Issues were rejected as the primary store because bulk
@@ -205,13 +225,14 @@ crashing.
 
 `life map` writes `MAP.md` with these sections:
 
-- Focus items grouped by domain, each with its `next` line and a stale flag when
-  untouched for over a week.
+- Focus items grouped by domain, then by area, each with its `next` line, a stale flag
+  when untouched for over a week, and a count of open questions.
 - Items of any kind whose `review` date has arrived.
 - Blocked and waiting items outside focus.
 - Tasks due within seven days.
 - Threads, meaning connected groups in the `related` graph that span more than one
   project or area.
+- Every open question from every file's Questions section, so the brief can ask them.
 - Counts.
 
 Done items are left out.

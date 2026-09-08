@@ -6,7 +6,9 @@ tier: focus
 status: waiting
 next: Waiting on the provider's sandbox credentials, chase on Wednesday
 touched: 2026-09-07
-related: [acme-account, priya-patel]
+parent: acme-account
+related: [priya-patel]
+links: [acme/billing]
 ---
 
 ## Goal
@@ -21,3 +23,7 @@ Data model mapped. Blocked on sandbox access from the provider.
 
 - [ ] Get sandbox credentials
 - [ ] Run the parallel billing test for one cycle
+
+## Questions
+
+- Which cycle should the parallel test cover, October or November?

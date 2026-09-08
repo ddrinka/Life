@@ -7,12 +7,13 @@ Generated 2026-09-08 by `life map`. Do not edit; change the files it reads.
 ### Work
 
 - **Acme account** (`acme-account`, area): Send the September status note by the 10th
-- **Billing migration to the new provider** (`billing-migration`, waiting): Waiting on the provider's sandbox credentials, chase on Wednesday
+  - **Billing migration to the new provider** (`billing-migration`, waiting, 1 question): Waiting on the provider's sandbox credentials, chase on Wednesday
 
 ### Personal
 
-- **Call two more deck contractors** (`deck-quotes`, task, in deck-replacement): Call Ridge Decks and Summit Builders
-- **Replace the deck** (`deck-replacement`): Get two more quotes by Friday
+- **House upkeep** (`house`, area, background)
+  - **Call two more deck contractors** (`deck-quotes`, task, in deck-replacement): Call Ridge Decks and Summit Builders
+  - **Replace the deck** (`deck-replacement`): Get two more quotes by Friday
 
 ## Due for review
 
@@ -29,8 +30,11 @@ Generated 2026-09-08 by `life map`. Do not edit; change the files it reads.
 
 ## Threads across projects
 
-- `acme-account`, `billing-migration`, `priya-patel`
-- `contractor-jim`, `deck-replacement`, `house`
+- `contractor-jim`, `deck-replacement`, `learn-woodworking`
+
+## Questions for the owner
+
+- `billing-migration`: Which cycle should the parallel test cover, October or November?
 
 ## Counts
 

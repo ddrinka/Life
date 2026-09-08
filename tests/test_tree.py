@@ -43,10 +43,10 @@ def test_focus_needs_next(tree: Path):
 
 
 def test_related_must_be_symmetric(tree: Path):
-    path = tree / "areas" / "house.md"
+    path = tree / "people" / "contractor-jim.md"
     path.write_text(path.read_text().replace("related: [deck-replacement]\n", ""))
     found = messages(lint(tree, TODAY))
-    assert any("areas/house.md: must list 'deck-replacement'" in m for m in found)
+    assert any("people/contractor-jim.md: must list 'deck-replacement'" in m for m in found)
 
 
 def test_related_must_exist(tree: Path):
@@ -102,12 +102,15 @@ def test_past_journal_is_immutable(tree: Path):
 
 def test_map_contents(tree: Path):
     text = mapgen.build_map(tree, TODAY)
-    assert "- **Replace the deck** (`deck-replacement`): Get two more quotes by Friday" in text
-    assert "(`billing-migration`, waiting)" in text
+    assert "  - **Replace the deck** (`deck-replacement`): Get two more quotes by Friday" in text
+    assert "- **House upkeep** (`house`, area, background)\n  - **Call two more" in text
+    assert "- **Acme account** (`acme-account`, area): Send the September" in text
+    assert "  - **Billing migration to the new provider** (`billing-migration`, waiting, 1 question)" in text
     assert "(`deck-quotes`, task, in deck-replacement)" in text
     assert "(`learn-woodworking`, project, background, review 2026-09-01)" in text
     assert "- 2026-09-01 **Renew passport** (`renew-passport`, overdue)" in text
-    assert "- `contractor-jim`, `deck-replacement`, `house`" in text
+    assert "- `contractor-jim`, `deck-replacement`, `learn-woodworking`" in text
+    assert "- `billing-migration`: Which cycle should the parallel test cover" in text
     assert "Projects: 2 focus, 1 background, 1 someday. Areas: 2. Open tasks: 3. People: 2." in text
     assert "old-website" not in text
     assert "write-a-novel" not in text
@@ -135,7 +138,8 @@ def test_query_filters(tree: Path):
     assert slugs(query(tree, Filter(due_before=TODAY), TODAY)) == ["renew-passport"]
     assert slugs(query(tree, Filter(review_due=True), TODAY)) == ["learn-woodworking"]
     assert slugs(query(tree, Filter(parent="deck-replacement"), TODAY)) == ["deck-quotes"]
-    assert slugs(query(tree, Filter(related="deck-replacement"), TODAY)) == ["house", "contractor-jim"]
+    assert slugs(query(tree, Filter(related="deck-replacement"), TODAY)) == ["contractor-jim", "learn-woodworking"]
+    assert slugs(query(tree, Filter(parent="house"), TODAY)) == ["deck-replacement"]
     assert slugs(query(tree, Filter(status="done"), TODAY)) == ["old-website"]
 
 
@@ -182,8 +186,11 @@ def run_all(tree: Path) -> list[str]:
         ("tasks/renew-passport.md", "tier: background\n", "tier: background\nparent: renew-passport\n", "parent 'renew-passport' must be a project or an area"),
         ("tasks/renew-passport.md", "tier: background\n", "tier: background\nparent: nobody\n", "parent 'nobody' is not an open file"),
         ("tasks/renew-passport.md", "tier: background\n", "tier: background\nparent: old-website\n", "parent 'old-website' is not an open file"),
-        ("areas/house.md", "related: [deck-replacement]", "related: [deck-replacement, deck-replacement]", "related has duplicate entries"),
-        ("areas/house.md", "related: [deck-replacement]", "related: [house]", "related lists itself"),
+        ("areas/house.md", "touched: 2026-09-05\n", "touched: 2026-09-05\nrelated: [deck-replacement, deck-replacement]\n", "related has duplicate entries"),
+        ("areas/house.md", "touched: 2026-09-05\n", "touched: 2026-09-05\nrelated: [house]\n", "related lists itself"),
+        ("projects/write-a-novel.md", "tier: someday\n", "tier: someday\nparent: deck-replacement\n", "parent 'deck-replacement' must be an area"),
+        ("areas/house.md", "touched: 2026-09-05\n", "touched: 2026-09-05\nparent: acme-account\n", "parent applies only to projects and tasks"),
+        ("projects/write-a-novel.md", "tier: someday\n", "tier: someday\nlinks: [\"\"]\n", "links must be a list"),
         ("projects/old-website.md", "tier: background\n", "tier: background\nrelated: [house]\n", "a done file must have an empty related list"),
         ("projects/write-a-novel.md", "## Goal", "## Notes\n\nfirst\n\n## Goal", "heading 'Goal' must come before 'Notes'"),
         ("projects/write-a-novel.md", "## Goal", "## Background", "heading 'Background' is not one of"),
@@ -213,7 +220,7 @@ def test_unreadable_entries_are_problems(tree: Path):
 
 
 def test_related_to_done_file_is_rejected(tree: Path):
-    edit(tree, "areas/house.md", "related: [deck-replacement]", "related: [deck-replacement, old-website]")
+    edit(tree, "areas/house.md", "touched: 2026-09-05\n", "touched: 2026-09-05\nrelated: [old-website]\n")
     assert any("areas/house.md: related 'old-website' is not an open file" in m for m in messages(lint(tree, TODAY)))
 
 
@@ -230,7 +237,8 @@ def test_frontmatter_edge_cases(tree: Path):
 
 
 def test_archive_is_checked(tree: Path):
-    (tree / "archive" / "projects" / "house.md").write_text((tree / "areas" / "house.md").read_text().replace("kind: area", "kind: project"))
+    (tree / "archive" / "projects" / "house.md").write_text(
+        (tree / "areas" / "house.md").read_text().replace("kind: area", "kind: project\nrelated: [deck-replacement]"))
     (tree / "archive" / "people").mkdir()
     (tree / "archive" / "people" / "someone.md").write_text("---\nkind: person\ntitle: Someone\ndomain: work\ntouched: 2026-01-01\n---\n")
     found = messages(lint(tree, TODAY))
@@ -371,7 +379,6 @@ def test_map_sections_respect_dates(tree: Path):
 @pytest.mark.parametrize(
     "rel, old, new, expected",
     [
-        ("projects/write-a-novel.md", "tier: someday\n", "tier: someday\nparent: house\n", "parent applies only to tasks"),
         ("projects/write-a-novel.md", "tier: someday\n", "tier: someday\nsource: [x]\n", "source must be a string"),
         ("cursors/runs.json", "{", "[{", "must be a JSON object"),
     ],

@@ -15,11 +15,11 @@ DOMAINS = ("personal", "work")
 TIERS = ("focus", "background", "someday")
 STATUSES = ("active", "waiting", "blocked", "done")
 DIRECTORIES = {"project": "projects", "area": "areas", "task": "tasks", "person": "people"}
-SECTIONS = ("Goal", "State", "Steps", "Decisions", "Notes")
+SECTIONS = ("Goal", "State", "Steps", "Questions", "Decisions", "Notes")
 
 FRONTMATTER_KEYS = {
     "kind", "title", "domain", "tier", "status", "next", "touched", "review",
-    "due", "parent", "related", "source",
+    "due", "parent", "related", "source", "links",
 }
 SLUG_RE = re.compile(r"^[a-z0-9][a-z0-9-]*$")
 HEADING_RE = re.compile(r"^(#+)[ \t]+(.*?)[ \t]*$")
@@ -81,6 +81,25 @@ class Entity:
         if not isinstance(value, list):
             return []
         return [v for v in value if isinstance(v, str)]
+
+    @property
+    def links(self) -> list[str]:
+        value = self.meta.get("links")
+        if not isinstance(value, list):
+            return []
+        return [v for v in value if isinstance(v, str)]
+
+    @property
+    def questions(self) -> list[str]:
+        """Bullet lines under the Questions heading."""
+        found: list[str] = []
+        inside = False
+        for line in self.body.splitlines():
+            if line.startswith("## "):
+                inside = line.strip() == "## Questions"
+            elif inside and line.lstrip().startswith("- "):
+                found.append(line.lstrip()[2:].strip())
+        return found
 
     @property
     def is_open(self) -> bool:
@@ -178,10 +197,10 @@ def validate_meta(meta: dict, expected_kind: str, slug: str, today: dt.date | No
                 problems.append("next is required for an open focus item")
         if meta.get("status") == "done" and meta.get("related"):
             problems.append("a done file must have an empty related list")
-        if expected_kind != "task":
-            for key in ("due", "parent"):
-                if key in meta:
-                    problems.append(f"{key} applies only to tasks")
+        if expected_kind != "task" and "due" in meta:
+            problems.append("due applies only to tasks")
+        if expected_kind == "area" and "parent" in meta:
+            problems.append("parent applies only to projects and tasks")
 
     for key in ("touched", "review", "due"):
         if key in meta and _as_date(meta[key]) is None:
@@ -191,6 +210,11 @@ def validate_meta(meta: dict, expected_kind: str, slug: str, today: dt.date | No
     elif (touched := _as_date(meta["touched"])) and touched > today:
         problems.append("touched is in the future")
 
+    links = meta.get("links")
+    if links is not None and (
+        not isinstance(links, list) or not all(isinstance(v, str) and v.strip() for v in links)
+    ):
+        problems.append("links must be a list of URLs or owner/repo names")
     related = meta.get("related")
     if related is not None:
         if not isinstance(related, list) or not all(isinstance(r, str) for r in related):

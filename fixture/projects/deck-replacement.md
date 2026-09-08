@@ -7,7 +7,9 @@ status: active
 next: Get two more quotes by Friday
 touched: 2026-09-05
 review: 2026-09-12
-related: [house, contractor-jim]
+parent: house
+related: [contractor-jim, learn-woodworking]
+links: [https://example.com/quotes]
 ---
 
 ## Goal

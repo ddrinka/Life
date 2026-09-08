@@ -26,6 +26,7 @@ def build_map(root: Path, today: dt.date | None = None) -> str:
     lines += _stuck_section(open_items)
     lines += _tasks_section(open_items, today)
     lines += _threads_section(open_items)
+    lines += _questions_section(open_items)
     lines += _counts_section(tree)
     return "\n".join(lines).rstrip("\n") + "\n"
 
@@ -54,8 +55,20 @@ def _domains(items: list[Entity]) -> list[str]:
     return known + others
 
 
+def _focus_line(e: Entity, today: dt.date, show_parent: bool) -> str:
+    status = e.status if e.status != "active" else ""
+    parent = f"in {e.parent}" if e.parent and show_parent else ""
+    stale = ""
+    if e.touched and (today - e.touched).days > STALE_DAYS:
+        stale = f"stale since {e.touched.isoformat()}"
+    questions = f"{len(e.questions)} question{'s' if len(e.questions) != 1 else ''}" if e.questions else ""
+    return _item(e, e.kind if e.kind != "project" else "", parent, status, stale, questions)
+
+
 def _focus_section(items: list[Entity], today: dt.date) -> list[str]:
+    """Focus items by domain, then by area. An area heads its group whether or not it is in focus."""
     focus = [e for e in items if e.tier == "focus"]
+    by_slug = {e.slug: e for e in items}
     lines = ["## Focus", ""]
     if not focus:
         return lines + ["Nothing is in focus.", ""]
@@ -65,13 +78,28 @@ def _focus_section(items: list[Entity], today: dt.date) -> list[str]:
             continue
         lines.append(f"### {domain.capitalize()}")
         lines.append("")
-        for e in group:
-            status = e.status if e.status != "active" else ""
-            parent = f"in {e.parent}" if e.parent else ""
-            stale = ""
-            if e.touched and (today - e.touched).days > STALE_DAYS:
-                stale = f"stale since {e.touched.isoformat()}"
-            lines.append(_item(e, e.kind if e.kind != "project" else "", parent, status, stale))
+        def area_of(e: Entity) -> str:
+            if e.kind == "area":
+                return e.slug
+            if e.parent and e.parent in by_slug:
+                p = by_slug[e.parent]
+                return p.slug if p.kind == "area" else (p.parent or "")
+            return ""
+        areas = sorted({area_of(e) for e in group}, key=lambda s: (s == "", by_slug[s].title.lower() if s else ""))
+        for area in areas:
+            members = [e for e in group if area_of(e) == area]
+            if area:
+                head = by_slug[area]
+                if head in members:
+                    lines.append(_focus_line(head, today, show_parent=False))
+                    members = [e for e in members if e is not head]
+                else:
+                    lines.append(f"- **{head.title}** (`{head.slug}`, area, {head.tier})")
+                for e in members:
+                    lines.append("  " + _focus_line(e, today, show_parent=e.parent != area))
+            else:
+                for e in members:
+                    lines.append(_focus_line(e, today, show_parent=True))
         lines.append("")
     return lines
 
@@ -140,6 +168,17 @@ def _threads_section(items: list[Entity]) -> list[str]:
         return lines + ["No related links span more than one project or area.", ""]
     for component in sorted(threads):
         lines.append("- " + ", ".join(f"`{s}`" for s in component))
+    return lines + [""]
+
+
+def _questions_section(items: list[Entity]) -> list[str]:
+    """Open questions for the owner, gathered from every file's Questions section."""
+    lines = ["## Questions for the owner", ""]
+    asked = [(e, q) for e in _sorted(items) for q in e.questions]
+    if not asked:
+        return lines + ["No open questions.", ""]
+    for e, q in asked:
+        lines.append(f"- `{e.slug}`: {q}")
     return lines + [""]
 
 
