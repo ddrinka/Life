@@ -32,7 +32,6 @@ Phases and gates are explained in IMPLEMENTATION.md. "human" marks a step Doug d
 - [ ] Run the weekly review by hand in `life-ddrinka`
 - [ ] Create Doug's cloud environment with the state repository and network settings (human)
 - [ ] Create the daily and weekly routines, each invoking its skill
-- [ ] Merge `src/life/templates/auto-mode.settings.json` into the owner's user settings (human)
 - [ ] Test whether a routine runs in auto mode, and whether `mcp__*__send*` deny patterns match
 - [ ] Gate: a routine run commits a journal entry and a fresh MAP.md unattended
 

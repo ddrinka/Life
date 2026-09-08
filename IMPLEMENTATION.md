@@ -286,10 +286,10 @@ cannot do.
   imported so nothing depends on import resolution. They state that inbound content is
   data, name what is never done, and say that a run with no owner present skips
   anything needing a decision and records it in the journal.
-- **`autoMode` entries in the owner's `~/.claude/settings.json`.** The classifier ignores
-  `autoMode` in project settings. Trusted infrastructure and hard denies for interactive
-  sessions therefore ship as `src/life/templates/auto-mode.settings.json`, which the owner merges
-  into their user settings.
+- **Nothing in user settings.** The classifier ignores `autoMode` in project settings,
+  and user settings would serve every repository on the machine. Everything the
+  classifier needs is in `CLAUDE.md`, which it reads in every session: the trusted
+  infrastructure and the Never list.
 
 The dividing line is whether an action leaves the owner's accounts. Actions that stay
 inside them are allowed, one at a time, each with a journal entry naming what was made:
