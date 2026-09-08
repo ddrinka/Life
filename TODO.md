@@ -25,14 +25,15 @@ Phases and gates are explained in IMPLEMENTATION.md. "human" marks a step Doug d
 
 ## Phase 3: Scheduled runs
 
-- [ ] Write the `daily-brief`, `weekly-review`, and `monthly-sweep` skills under `src/life/templates/.claude/skills/`
-- [ ] Build `life brief`: compose the spoken update from MAP.md and the journal since the last brief
-- [ ] Define `cursors/runs.json` fields and run a few manual sessions
+- [x] Write the `daily-brief`, `weekly-review`, and `monthly-sweep` skills under `src/life/templates/.claude/skills/`
+- [x] Build `life brief`: print the brief material, the time, the journal since the last brief, and the map
+- [x] Define `cursors/runs.json` fields
+- [x] Run the daily brief by hand in `life-ddrinka` as the first dry run
+- [ ] Run the weekly review by hand in `life-ddrinka`
 - [ ] Create Doug's cloud environment with the state repository and network settings (human)
 - [ ] Create the daily and weekly routines, each invoking its skill
 - [ ] Merge `src/life/templates/auto-mode.settings.json` into the owner's user settings (human)
 - [ ] Test whether a routine runs in auto mode, and whether `mcp__*__send*` deny patterns match
-- [ ] Test that a planted instruction in a fixture email is logged in the journal and not acted on
 - [ ] Gate: a routine run commits a journal entry and a fresh MAP.md unattended
 
 ## Phase 4: Ingestion, each item independent
