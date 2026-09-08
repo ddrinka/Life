@@ -18,8 +18,8 @@ Phases and gates are explained in IMPLEMENTATION.md. "human" marks a step Doug d
 - [x] Finish `src/life/templates/`: add .gitignore and lint LOCAL.md frontmatter (owner, timezone, sms)
 - [x] Build `life init`: create a state repository from `src/life/templates/` with the pin
 - [x] Build `life upgrade`: bump the pin and rewrite the managed files
-- [ ] Tag the first release and push it (human approves the push)
-- [ ] Run `life init` in `life-ddrinka` and push the initial commit
+- [x] Tag the first release and push it
+- [x] Run `life init` in `life-ddrinka` and push the initial commit
 - [ ] Seed `life-ddrinka` from conversation with Doug (human)
 - [ ] Gate: an interactive session in `life-ddrinka` reads the map, edits a project, and pushes
 
