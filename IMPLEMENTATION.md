@@ -328,6 +328,25 @@ mode by default, and whether `permissions.deny` patterns match connector tools w
 wildcard in the server position. If routines do not run in auto mode, the deny list and
 `CLAUDE.md` still hold, and only the classifier's judgment is lost.
 
+### Scheduled runs and the brief
+
+Three skills ship as managed files under `.claude/skills/` in every state repository:
+`daily-brief`, `weekly-review`, and `monthly-sweep`. A routine's prompt is the skill's
+name. Each skill follows the reading protocol for its layer, journals as it goes, updates
+its cursor, regenerates the map, lints, commits, and pushes, and ends with the fixed
+checklist.
+
+`life brief` prints the material for the brief and nothing more: the current time in the
+owner's zone, every journal entry since the `last_brief` cursor, and the map. The agent
+writes the spoken text, because plain speech that keeps every caveat is a language task,
+and the material is deterministic so the tooling can be tested. The daily skill saves the
+text under `briefs/YYYY/MM-DD.md`, under 40 lines, and `life send` will later text that
+file. Keeping the brief in the tree lets the next run see what the owner was already told.
+
+`cursors/runs.json` holds four timestamps: `last_run`, `last_brief`, `last_weekly_review`,
+and `last_monthly_sweep`. `life cursor` reads and sets them, `life now` prints the time in
+the owner's zone, and lint rejects any other key.
+
 ### Semantic index
 
 The semantic index is deferred. Frontmatter queries and `grep` cover the first few hundred

@@ -4,10 +4,12 @@ from __future__ import annotations
 
 import argparse
 import datetime as dt
+import json
 import subprocess
 import sys
 from pathlib import Path
 
+from . import brief as brief_mod
 from . import journal as journal_mod
 from . import lint as lint_mod
 from . import mapgen
@@ -72,6 +74,19 @@ def build_parser() -> argparse.ArgumentParser:
     p_up.add_argument("--no-sync", action="store_true", help="rewrite files from the installed tooling without `uv sync`")
 
     sub.add_parser("sync-files", help="rewrite the managed files from the installed tooling")
+
+    p_brief = sub.add_parser("brief", help="print the material for today's brief")
+    p_brief.add_argument("--now", type=_datetime, default=None, help="override the current time, for tests")
+    p_brief.add_argument("--path", action="store_true", help="print the path of today's brief file instead")
+
+    p_now = sub.add_parser("now", help="print the current time in the owner's timezone")
+    p_now.add_argument("--now", type=_datetime, default=None, help="override the current time, for tests")
+
+    p_cursor = sub.add_parser("cursor", help="read or set a run cursor in cursors/runs.json")
+    p_cursor.add_argument("key", nargs="?", choices=brief_mod.CURSOR_KEYS, help="omit to print them all")
+    p_cursor.add_argument("value", nargs="?", help="ISO timestamp to store")
+    p_cursor.add_argument("--now", type=_datetime, default=None, help="store the current time, or this time")
+    p_cursor.add_argument("--set-now", action="store_true", help="store the current time")
     return parser
 
 
@@ -105,6 +120,17 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.command == "journal":
         return _journal(root, args)
+    if args.command == "brief":
+        if args.path:
+            print(brief_mod.brief_path(root, args.now).relative_to(root))
+        else:
+            sys.stdout.write(brief_mod.build_digest(root, args.now))
+        return 0
+    if args.command == "now":
+        print(journal_mod.now_local(root, args.now).isoformat(timespec="minutes"))
+        return 0
+    if args.command == "cursor":
+        return _cursor(root, args)
 
     if args.command == "lint":
         problems = lint_mod.lint(root, args.today)
@@ -159,6 +185,22 @@ def _init(root: Path, args) -> int:
         return 1
     print("\n".join(steps))
     print("Next: edit LOCAL.md, then commit and push.")
+    return 0
+
+
+def _cursor(root: Path, args) -> int:
+    if args.key is None:
+        print(json.dumps(brief_mod.read_cursors(root), indent=2, sort_keys=True))
+        return 0
+    if args.value is None and not args.set_now and args.now is None:
+        value = brief_mod.read_cursors(root).get(args.key)
+        print("" if value is None else value)
+        return 0
+    value = args.value or journal_mod.now_local(root, args.now).isoformat(timespec="minutes")
+    if dt.datetime.fromisoformat(value) is None:
+        return 2
+    brief_mod.write_cursor(root, args.key, value)
+    print(f"{args.key} = {value}")
     return 0
 
 

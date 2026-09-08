@@ -469,3 +469,46 @@ def test_sync_files_and_upgrade_rewrite_managed_files(tree: Path, capsys):
     assert "@v9.9.9" in (tree / "pyproject.toml").read_text()
     assert (tree / "LOCAL.md").read_text().endswith("- kept\n")
     assert (tree / "MAP.md").read_text().startswith("# Map")
+
+
+def test_brief_material_and_cursors(tree: Path, capsys):
+    now = "2026-09-09T07:00:00-06:00"
+    assert main(["--root", str(tree), "now", "--now", now]) == 0
+    assert capsys.readouterr().out.strip() == "2026-09-09T07:00-06:00"
+    assert main(["--root", str(tree), "journal", "--now", "2026-09-08T09:00:00-06:00", "after the last brief"]) == 0
+    assert main(["--root", str(tree), "brief", "--now", now]) == 0
+    text = capsys.readouterr().out
+    assert "Now: Wednesday 2026-09-09 07:00 MDT." in text
+    assert "Last brief: Tuesday 2026-09-08 07:00." in text
+    assert "- 2026-09-08 09:00 after the last brief" in text
+    assert "- 2026-09-07" not in text
+    assert "## Focus" in text and "Generated" not in text
+    assert main(["--root", str(tree), "brief", "--now", now, "--path"]) == 0
+    assert capsys.readouterr().out.strip() == "briefs/2026/09-09.md"
+    assert main(["--root", str(tree), "cursor", "last_weekly_review", "--now", now]) == 0
+    assert main(["--root", str(tree), "cursor", "last_weekly_review"]) == 0
+    assert capsys.readouterr().out.strip().endswith("last_weekly_review = 2026-09-09T07:00-06:00\n2026-09-09T07:00-06:00")
+    assert main(["--root", str(tree), "cursor"]) == 0
+    import json
+    data = json.loads(capsys.readouterr().out)
+    assert set(data) == {"last_run", "last_brief", "last_weekly_review"}
+    (tree / "briefs" / "2026").mkdir(parents=True)
+    (tree / "briefs" / "2026" / "09-09.md").write_text("Good morning.\n")
+    (tree / "briefs" / "2026" / "09-10.md").write_text("\n".join(["x"] * 41))
+    (tree / "briefs" / "notes.md").write_text("x")
+    found = messages(lint(tree, dt.date(2026, 9, 9)))
+    assert "briefs/2026/09-10.md: brief is dated in the future" in found
+    assert "briefs/2026/09-10.md: 41 lines, limit 40" in found
+    assert "briefs/notes.md: briefs are named briefs/YYYY/MM-DD.md" in found
+    (tree / "cursors" / "runs.json").write_text('{"last_email": "x"}')
+    assert any("unknown cursor 'last_email'" in m for m in messages(lint(tree, TODAY)))
+
+
+def test_init_ships_skills(tmp_path: Path):
+    root = tmp_path / "state"
+    assert main(["--root", str(root), "init", "--owner", "T", "--timezone", "UTC", "--version", "v0.3.0", "--no-lock"]) == 0
+    for name in ("daily-brief", "weekly-review", "monthly-sweep"):
+        text = (root / ".claude" / "skills" / name / "SKILL.md").read_text()
+        assert text.startswith(f"---\nname: {name}\n")
+    assert (root / "briefs").is_dir()
+    assert lint(root) == []

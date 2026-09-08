@@ -12,8 +12,9 @@ from . import mapgen
 from .model import DIRECTORIES, split_frontmatter
 
 TOOLING_URL = "https://github.com/ddrinka/Life"
-MANAGED_FILES = ("GUIDE.md", "CLAUDE.md", ".claude/settings.json")
-DIRECTORY_NAMES = (*DIRECTORIES.values(), "journal", "archive", "cursors")
+MANAGED_FILES = ("GUIDE.md", "CLAUDE.md")
+MANAGED_TREES = (".claude",)
+DIRECTORY_NAMES = (*DIRECTORIES.values(), "journal", "archive", "cursors", "briefs")
 
 
 def templates_dir() -> Path:
@@ -35,6 +36,14 @@ def sync_files(root: Path) -> list[Path]:
         target.parent.mkdir(parents=True, exist_ok=True)
         shutil.copyfile(templates_dir() / name, target)
         written.append(target)
+    for name in MANAGED_TREES:
+        source = templates_dir() / name
+        target = root / name
+        for path in sorted(p for p in source.rglob("*") if p.is_file()):
+            dest = target / path.relative_to(source)
+            dest.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copyfile(path, dest)
+            written.append(dest)
     return written
 
 
@@ -78,7 +87,7 @@ def init(root: Path, owner: str, timezone: str, sms: str | None, version: str,
         (root / name).mkdir(exist_ok=True)
     steps.append("created the tree directories")
     sync_files(root)
-    steps.append("wrote GUIDE.md, CLAUDE.md, and .claude/settings.json")
+    steps.append("wrote GUIDE.md, CLAUDE.md, and .claude/")
     write_local(root, owner, timezone, sms)
     steps.append("wrote LOCAL.md")
     gitignore = root / ".gitignore"

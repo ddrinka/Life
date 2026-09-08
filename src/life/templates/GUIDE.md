@@ -1,12 +1,9 @@
 # Guide to the life tree
 
 This repository holds one person's projects, responsibilities, tasks, people, and
-history. Agents read and write it. The owner never edits it directly; they talk to an
-agent, and the agent updates the tree. Every session starts by reading this file,
-`LOCAL.md`, and `MAP.md` in full.
-
-The `life` tooling manages this file and replaces it on `life upgrade`. Rules specific
-to this person go in `LOCAL.md`, which the tooling never overwrites.
+history. Agents read and write it; the owner only talks to an agent. Every session starts
+by reading this file, `LOCAL.md`, and `MAP.md` in full. The `life` tooling replaces this
+file on `life upgrade`; this person's own rules go in `LOCAL.md`, which it never touches.
 
 ## Layout
 
@@ -21,8 +18,9 @@ areas/<slug>.md        ongoing responsibilities with no end: house, health, a cl
 tasks/<slug>.md        standalone items, or project steps that carry a date or a source
 people/<slug>.md       context on a person and open commitments in both directions
 journal/YYYY/MM-DD.md  append-only daily log of events and agent actions
+briefs/YYYY/MM-DD.md   the spoken brief for that day, written by the daily run, under 40 lines
 archive/               done files of every kind, moved by the monthly sweep
-cursors/*.json         machine state: last email seen, last brief sent, last run
+cursors/runs.json      last_run, last_brief, last_weekly_review, last_monthly_sweep, as timestamps
 ```
 
 ## Reading protocol
@@ -37,6 +35,8 @@ Read in layers. The first layer is small enough to read every time, so read all 
    has passed, and every area. This run exists to see intersections that topic reading
    misses. It updates tiers, `related` lists, and `next` lines.
 4. **Monthly sweep:** archive done items, run `life lint`, and refresh `MAP.md`.
+
+The daily, weekly, and monthly runs are skills under `.claude/skills/`, invoked by name.
 
 If `MAP.md` is over its size limit, fixing that comes before any other work.
 

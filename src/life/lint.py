@@ -18,7 +18,9 @@ LINE_LIMITS = {"GUIDE.md": 150, "LOCAL.md": 150, "MAP.md": 150}
 FILE_LINE_LIMIT = 120
 REQUIRED_FILES = ("GUIDE.md", "LOCAL.md", "MAP.md")
 ROOT_FILES = set(REQUIRED_FILES) | {"CLAUDE.md", "README.md", "pyproject.toml", "uv.lock"}
-ROOT_DIRECTORIES = set(DIRECTORIES.values()) | {"journal", "archive", "cursors"}
+ROOT_DIRECTORIES = set(DIRECTORIES.values()) | {"journal", "archive", "cursors", "briefs"}
+BRIEF_LINE_LIMIT = 40
+CURSOR_KEYS = ("last_run", "last_brief", "last_weekly_review", "last_monthly_sweep")
 JOURNAL_RE = re.compile(r"^(\d{4})/(\d{2})-(\d{2})\.md$")
 
 
@@ -42,6 +44,7 @@ def lint(root: Path, today: dt.date | None = None) -> list[Problem]:
     problems += _root_file_problems(root, today)
     problems += _size_problems(root, tree)
     problems += _journal_problems(root, today)
+    problems += _brief_problems(root, today)
     problems += _cursor_problems(root)
     problems += _immutability_problems(root, today)
     return problems
@@ -230,6 +233,30 @@ def _journal_problems(root: Path, today: dt.date) -> list[Problem]:
     return problems
 
 
+def _brief_problems(root: Path, today: dt.date) -> list[Problem]:
+    """Briefs are named like journal days, dated no later than today, and short enough to speak."""
+    problems: list[Problem] = []
+    briefs = root / "briefs"
+    if not briefs.is_dir():
+        return problems
+    for path in sorted(p for p in briefs.rglob("*") if p.is_file()):
+        rel = path.relative_to(briefs).as_posix()
+        match = JOURNAL_RE.match(rel)
+        if not match or not is_regular_file(path):
+            problems.append(Problem(_rel(root, path), "briefs are named briefs/YYYY/MM-DD.md"))
+            continue
+        try:
+            day = dt.date(*map(int, match.groups()))
+        except ValueError:
+            problems.append(Problem(_rel(root, path), "brief file name is not a real date"))
+            continue
+        if day > today:
+            problems.append(Problem(_rel(root, path), "brief is dated in the future"))
+        if (n := _line_count(path)) is not None and n > BRIEF_LINE_LIMIT:
+            problems.append(Problem(_rel(root, path), f"{n} lines, limit {BRIEF_LINE_LIMIT}"))
+    return problems
+
+
 def _cursor_problems(root: Path) -> list[Problem]:
     problems: list[Problem] = []
     cursors = root / "cursors"
@@ -249,12 +276,12 @@ def _cursor_problems(root: Path) -> list[Problem]:
         if not isinstance(data, dict):
             problems.append(Problem(rel, "must be a JSON object"))
         elif path == runs:
-            for key in ("last_run", "last_brief"):
-                value = data.get(key)
-                if value is None:
+            for key in data:
+                if key not in CURSOR_KEYS:
+                    problems.append(Problem(rel, f"unknown cursor '{key}'; known: {', '.join(CURSOR_KEYS)}"))
                     continue
                 try:
-                    dt.datetime.fromisoformat(str(value))
+                    dt.datetime.fromisoformat(str(data[key]))
                 except ValueError:
                     problems.append(Problem(rel, f"{key} must be an ISO 8601 timestamp"))
     return problems
