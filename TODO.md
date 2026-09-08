@@ -39,6 +39,8 @@ Phases and gates are explained in IMPLEMENTATION.md. "human" marks a step Doug d
 
 - [ ] Write the GitHub ingestion skill: turn open issues and PRs assigned to the owner into tasks
 - [ ] Connect Google Calendar and Gmail connectors to the cloud environment (human)
+- [ ] Create a Google user for agents and share the Drive folders that hold project detail (human)
+- [ ] Google Drive reading through the connector, for documents named in `links`
 - [ ] Write the calendar ingestion skill: put the next seven days into the map and the brief
 - [ ] Write the Gmail ingestion skill: put summaries and message IDs into tasks and the journal
 - [ ] Build Gmail triage: label and archive one message at a time per LOCAL.md, with journal entries
