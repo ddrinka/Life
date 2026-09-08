@@ -20,7 +20,7 @@ Phases and gates are explained in IMPLEMENTATION.md. "human" marks a step Doug d
 - [x] Build `life upgrade`: bump the pin and rewrite the managed files
 - [x] Tag the first release and push it
 - [x] Run `life init` in `life-ddrinka` and push the initial commit
-- [ ] Seed `life-ddrinka` from conversation with Doug (human)
+- [x] Seed `life-ddrinka` from conversation with Doug and a research pass
 - [ ] Gate: an interactive session in `life-ddrinka` reads the map, edits a project, and pushes
 
 ## Phase 3: Scheduled runs
