@@ -28,6 +28,9 @@ commands.
 - Doug's repositories are confidential, and some commit secrets on purpose when the
   secret grants no more than reading the code already does. Do not hunt for or report
   committed secrets. If you read one, do not send it anywhere.
+- The shell's working directory resets to the repository root between turns. Run every
+  state-repository command with `--root /workspaces/Life/state`, or `cd` into it in the
+  same command, or the tree's files land in this repository.
 - Run `uv run pytest -q` and `uv run life --root fixture --today 2026-09-08 lint` before
   reporting work done. Regenerate `fixture/MAP.md` with `life map` after any fixture
   change; lint fails when the map is out of date.

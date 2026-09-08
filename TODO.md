@@ -45,6 +45,7 @@ Phases and gates are explained in IMPLEMENTATION.md. "human" marks a step Doug d
 - [ ] Write the calendar ingestion skill: put the next seven days into the map and the brief
 - [ ] Write the Gmail ingestion skill: put summaries and message IDs into tasks and the journal
 - [ ] Build Gmail triage: label and archive one message at a time per LOCAL.md, with journal entries
+- [ ] Test that a planted instruction in an email is logged in the journal and not acted on
 - [ ] Replace wildcard connector deny patterns with the connectors' real tool names
 - [ ] Gate: the brief mentions an item from each source
 
