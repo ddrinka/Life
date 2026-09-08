@@ -1,20 +1,21 @@
-# Python 3.13 Agentic Template
+# Life
 
-This repository is a GitHub template for Python 3.13 projects built with Claude Code and
-an agent team. The dev container comes from
-[ddrinka/DevContainer](https://github.com/ddrinka/DevContainer). Before the container
-builds, `.devcontainer/devcontainer.json` clones that repository into
-`.devcontainer/base`. The base supplies the image, Claude Code, the agent definitions,
-and the shared `AGENTS.md` conventions. This repository adds only two things:
-`on_update.sh`, which runs `uv sync`, and the Docker-in-Docker feature.
+Life is tooling that keeps Doug's life organized through agents. Agents read email,
+calendars, and GitHub. They keep projects moving, track priorities, and report
+back in a few sentences by text or voice. The system runs in the cloud on a schedule.
 
-Dependencies go through `uv` and are pinned in `pyproject.toml` and `uv.lock`.
+This repository holds the tooling only. Each person keeps their data in a private state
+repository, created from `templates/` and pinned to a release of this tooling.
 
-Work is tracked in [TODO.md](TODO.md) and explained in [IMPLEMENTATION.md](IMPLEMENTATION.md).
-Repository-specific agent conventions live in [AGENTS.md](AGENTS.md).
+- `templates/` is the starting point for a state repository. The rules agents follow
+  inside a state repository are in [templates/GUIDE.md](templates/GUIDE.md).
+- `src/` holds the `life` CLI that lints a tree, builds the map, composes briefs, and
+  upgrades a state repository to a new tooling release.
+- `fixture/` is a small state tree that tests run against.
 
-## Starting a project from this template
+Work on the tooling is tracked in [TODO.md](TODO.md) and explained in
+[IMPLEMENTATION.md](IMPLEMENTATION.md). Repository-specific agent conventions are in
+[AGENTS.md](AGENTS.md).
 
-1. Create a repository from the template and open it with **Clone Repository in Container Volume**.
-2. Rename the project in `pyproject.toml` and run `uv lock`.
-3. Replace this README, and fill in `TODO.md` and `IMPLEMENTATION.md`.
+Dependencies go through `uv` and are pinned in `pyproject.toml` and `uv.lock`. The dev
+container comes from [ddrinka/DevContainer](https://github.com/ddrinka/DevContainer).

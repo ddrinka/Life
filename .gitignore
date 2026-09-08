@@ -83,3 +83,6 @@ pyrightconfig.json
 
 # Claude Code: per-user settings stay local
 .claude/settings.local.json
+
+# A live state repository cloned for trying the tooling against real data
+/state/

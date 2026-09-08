@@ -1,6 +1,26 @@
 [project]
-name = "python313-agentic-template"
+name = "life"
 version = "0.1.0"
-description = "Template for Python 3.13 projects built by agent teams."
+description = "Tooling that keeps a person's life organized through agents."
 requires-python = ">=3.13"
-dependencies = []
+dependencies = [
+    "pyyaml==6.0.3",
+]
+
+[project.scripts]
+life = "life.cli:main"
+
+[build-system]
+requires = ["hatchling==1.27.0"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/life"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[dependency-groups]
+dev = [
+    "pytest==9.1.1",
+]

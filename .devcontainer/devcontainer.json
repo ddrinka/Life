@@ -1,5 +1,5 @@
 {
-	"name": "Python 3.13",
+	"name": "Life",
 	"initializeCommand": [
 		"git",
 		"-c",
@@ -12,17 +12,7 @@
 		"dockerfile": "base/images/Dockerfile"
 	},
 	"features": {
-		"./base/features/agentic": {},
-		"ghcr.io/devcontainers/features/docker-in-docker@sha256:7d979c4a36d595eb4ab79909caa3f396daf3b6152dcf38e8328ea4eff42206c7": {
-			"moby": false
-		}
-	},
-	"customizations": {
-		"vscode": {
-			"extensions": [
-				"ms-toolsai.jupyter"
-			]
-		}
+		"./base/features/agentic": {}
 	},
 	"updateContentCommand": [
 		"/bin/bash",

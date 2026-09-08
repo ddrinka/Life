@@ -1,0 +1,132 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(uv sync)",
+      "Bash(uv run life *)",
+      "Bash(git status*)",
+      "Bash(git diff*)",
+      "Bash(git log*)",
+      "Bash(git add *)",
+      "Bash(git mv *)",
+      "Bash(git commit *)",
+      "Bash(git pull --rebase)",
+      "Bash(git pull --rebase origin main)",
+      "Bash(git push)",
+      "Bash(git push origin main)",
+      "Bash(gh issue list*)",
+      "Bash(gh issue view*)",
+      "Bash(gh pr list*)",
+      "Bash(gh pr view*)",
+      "Bash(gh search *)",
+      "Bash(date *)",
+      "Bash(grep *)",
+      "Bash(rg *)",
+      "Bash(ls *)",
+      "Bash(cat *)"
+    ],
+    "deny": [
+      "Bash(git push --force*)",
+      "Bash(git push -f*)",
+      "Bash(git push * --force*)",
+      "Bash(git push * -f*)",
+      "Bash(git push * --delete*)",
+      "Bash(git push * :*)",
+      "Bash(git reset*)",
+      "Bash(git rebase*)",
+      "Bash(git filter-branch*)",
+      "Bash(git filter-repo*)",
+      "Bash(git branch -D*)",
+      "Bash(git branch -d*)",
+      "Bash(git checkout -- *)",
+      "Bash(git restore*)",
+      "Bash(git clean*)",
+      "Bash(git rm*)",
+      "Bash(rm *journal*)",
+      "Bash(rm *archive*)",
+      "Bash(rm -r*)",
+      "Bash(gh issue create*)",
+      "Bash(gh issue comment*)",
+      "Bash(gh issue close*)",
+      "Bash(gh issue edit*)",
+      "Bash(gh pr create*)",
+      "Bash(gh pr comment*)",
+      "Bash(gh pr merge*)",
+      "Bash(gh pr close*)",
+      "Bash(gh pr review*)",
+      "Bash(gh repo delete*)",
+      "Bash(gh api -X*)",
+      "Bash(gh api --method*)",
+      "Bash(gh api -f*)",
+      "Bash(gh api -F*)",
+      "Bash(curl*)",
+      "Bash(wget*)",
+      "Bash(nc *)",
+      "Bash(ssh*)",
+      "Bash(scp*)",
+      "Bash(sudo*)",
+      "Bash(pip *)",
+      "Bash(pip3 *)",
+      "Bash(uv add*)",
+      "Bash(uv remove*)",
+      "Bash(uv pip*)",
+      "Bash(npm *)",
+      "Bash(npx *)",
+      "Bash(env)",
+      "Bash(printenv*)",
+      "Bash(python -c*)",
+      "Bash(python3 -c*)",
+      "Bash(uv run python*)",
+      "WebFetch",
+      "WebSearch",
+      "Read(~/.ssh/**)",
+      "Read(~/.aws/**)",
+      "Read(~/.config/**)",
+      "Read(~/.claude/**)",
+      "Read(.env)",
+      "Read(.env.*)",
+      "Edit(GUIDE.md)",
+      "Write(GUIDE.md)",
+      "Edit(CLAUDE.md)",
+      "Write(CLAUDE.md)",
+      "Edit(pyproject.toml)",
+      "Write(pyproject.toml)",
+      "Edit(uv.lock)",
+      "Write(uv.lock)",
+      "Edit(.claude/**)",
+      "Write(.claude/**)",
+      "Edit(archive/**)",
+      "Write(archive/**)",
+      "mcp__*__send*",
+      "mcp__*__reply*",
+      "mcp__*__forward*",
+      "mcp__*__update*",
+      "mcp__*__delete*",
+      "mcp__*__trash*",
+      "mcp__*__share*",
+      "mcp__*__accept*",
+      "mcp__*__decline*"
+    ]
+  },
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "uv sync --quiet"
+          }
+        ]
+      }
+    ],
+    "PermissionDenied": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "uv run life journal --denied"
+          }
+        ]
+      }
+    ]
+  }
+}
