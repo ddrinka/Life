@@ -31,13 +31,15 @@ Phases and gates are explained in IMPLEMENTATION.md. "human" marks a step Doug d
 - [x] Run the daily brief by hand in `life-ddrinka` as the first dry run
 - [ ] Run the weekly review by hand in `life-ddrinka`
 - [ ] Create Doug's cloud environment with the state repository and network settings (human)
+- [ ] Make the pinned tooling installable from a cloud session: try an environment API credential for github.com first
 - [ ] Create the daily and weekly routines, each invoking its skill
-- [ ] Test whether a routine runs in auto mode, and whether `mcp__*__send*` deny patterns match
+- [ ] Test whether `mcp__*__send*` deny patterns match connector tools
 - [ ] Gate: a routine run commits a journal entry and a fresh MAP.md unattended
 
 ## Phase 4: Ingestion, each item independent
 
 - [ ] Write the GitHub ingestion skill: turn open issues and PRs assigned to the owner into tasks
+- [ ] Decide how to reach both Gmail accounts, since connectors allow one per user
 - [ ] Connect Google Calendar and Gmail connectors to the cloud environment (human)
 - [ ] Create a Google user for agents and share the Drive folders that hold project detail (human)
 - [ ] Google Drive reading through the connector, for documents named in `links`

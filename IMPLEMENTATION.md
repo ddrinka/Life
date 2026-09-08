@@ -323,10 +323,35 @@ reported through this hook.
 `LOCAL.md` carries frontmatter the tooling reads: `owner`, `timezone` for journal
 timestamps, and `sms` for delivery. The prose below it stays free-form.
 
-Two facts are not documented and need a test in Phase 3: whether routines run in auto
-mode by default, and whether `permissions.deny` patterns match connector tools with a
-wildcard in the server position. If routines do not run in auto mode, the deny list and
-`CLAUDE.md` still hold, and only the classifier's judgment is lost.
+One fact is not documented and needs a test in Phase 3: whether `permissions.deny`
+patterns match connector tools with a wildcard in the server position. A cloud session
+on 2026-09-08 reported that its attempt to attach a second repository "was denied by
+the permission classifier", so the classifier is active in cloud sessions.
+
+### Findings from the first cloud session, 2026-09-08
+
+A cloud session against `life-ddrinka` could not run `uv sync`. Its GitHub access is
+scoped to the attached repository, so fetching the pinned tooling from the private
+`ddrinka/Life` repository failed with "could not read Username for https://github.com".
+A plain `git ls-remote` against Life failed the same way while one against life-ddrinka
+succeeded. Until this is fixed no `life` command runs in the cloud, so no routine can.
+Options, in the order to try:
+
+1. Store a fine-grained GitHub token with read access to Life as an API credential on
+   the cloud environment for host `github.com`. The proxy injects it and the repository
+   stays private. Unknown whether the injection covers git over HTTPS as well as the API.
+2. Attach Life as a second repository and have the session-start hook check out the
+   pinned tag in that clone and point `uv` at it through `[tool.uv.sources]`. Keeps the
+   pin, at the cost of a hook that knows where the cloud puts a second repository.
+3. Make Life public. It holds no personal data, and the local-rules template carries a
+   placeholder number, but its agent conventions mention Doug and his repositories.
+
+The claude.ai connectors allow one Gmail connection per user, and Doug has two accounts:
+`ddrinka@gmail.com` for personal mail and `ddrinka@ergoncapitalmanagement.com` for work.
+Options: forward one account into the other with a label and filter on it; connect one
+account now and add the other through a self-built Gmail reader with its own OAuth
+grant, which would live in the Fargate service; or a second claude.ai user for work.
+Not decided.
 
 ### Scheduled runs and the brief
 
