@@ -348,10 +348,16 @@ Options, in the order to try:
 
 The claude.ai connectors allow one Gmail connection per user, and Doug has two accounts:
 `ddrinka@gmail.com` for personal mail and `ddrinka@ergoncapitalmanagement.com` for work.
-Options: forward one account into the other with a label and filter on it; connect one
-account now and add the other through a self-built Gmail reader with its own OAuth
-grant, which would live in the Fargate service; or a second claude.ai user for work.
-Not decided.
+Both are reached through `gmail-mcp-relay` in
+[ddrinka/Infrastructure](https://github.com/ddrinka/Infrastructure), a Cloudflare Worker
+that fronts Google's Gmail MCP server with one path and one bearer token per account and
+holds the Google refresh tokens itself. A session adds it as a plain HTTP MCP server; on
+the web the cloud environment's API credential carries the bearer, and locally a header
+does. The relay is deployed and passes every Google check except one: Google's Gmail MCP
+server refuses tool calls until the billing project is enrolled in the Workspace
+Developer Preview Program, which takes days to approve. Consumer configuration and the
+remaining steps are in that repository's `gmail-mcp-relay/IMPLEMENTATION.md`. The
+claude.ai Gmail connector stays off in sessions that use the relay.
 
 ### Scheduled runs and the brief
 

@@ -39,8 +39,9 @@ Phases and gates are explained in IMPLEMENTATION.md. "human" marks a step Doug d
 ## Phase 4: Ingestion, each item independent
 
 - [ ] Write the GitHub ingestion skill: turn open issues and PRs assigned to the owner into tasks
-- [ ] Decide how to reach both Gmail accounts, since connectors allow one per user
-- [ ] Connect Google Calendar and Gmail connectors to the cloud environment (human)
+- [x] Decide how to reach both Gmail accounts: the gmail-mcp-relay in ddrinka/Infrastructure
+- [ ] Add the relay's bearer credential and `.mcp.json` entries once Google's preview enrollment lands
+- [ ] Connect the Google Calendar connector to the cloud environment (human)
 - [ ] Create a Google user for agents and share the Drive folders that hold project detail (human)
 - [ ] Google Drive reading through the connector, for documents named in `links`
 - [ ] Write the calendar ingestion skill: put the next seven days into the map and the brief
