@@ -31,7 +31,9 @@ Phases and gates are explained in IMPLEMENTATION.md. "human" marks a step Doug d
 - [x] Run the daily brief by hand in `life-ddrinka` as the first dry run
 - [ ] Run the weekly review by hand in `life-ddrinka`
 - [ ] Create Doug's cloud environment with the state repository and network settings (human)
-- [ ] Make the pinned tooling installable from a cloud session: try an environment API credential for github.com first
+- [x] Scan Life's history for secrets and personal data before making it public
+- [ ] Make Life public so the pin installs in a cloud session without credentials (human)
+- [ ] Confirm a single-repository session installs the pin once Life is public
 - [ ] Create the daily and weekly routines, each invoking its skill
 - [ ] Test whether `mcp__*__send*` deny patterns match connector tools
 - [ ] Gate: a routine run commits a journal entry and a fresh MAP.md unattended

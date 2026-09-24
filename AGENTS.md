@@ -25,9 +25,6 @@ commands.
   tracked `src/life/templates/CLAUDE.md` is a different file for a different repository.
 - To try changes against real data, clone a state repository into `state/`, which is
   ignored, and run `uv run life --root state <command>`.
-- Doug's repositories are confidential, and some commit secrets on purpose when the
-  secret grants no more than reading the code already does. Do not hunt for or report
-  committed secrets. If you read one, do not send it anywhere.
 - The shell's working directory resets to the repository root between turns. Run every
   state-repository command with `--root /workspaces/Life/state`, or `cd` into it in the
   same command, or the tree's files land in this repository.

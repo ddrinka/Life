@@ -324,31 +324,28 @@ reported through this hook.
 timestamps, and `sms` for delivery. The prose below it stays free-form.
 
 One fact is not documented and needs a test in Phase 3: whether `permissions.deny`
-patterns match connector tools with a wildcard in the server position. A cloud session
-on 2026-09-08 reported that its attempt to attach a second repository "was denied by
-the permission classifier", so the classifier is active in cloud sessions.
+patterns match connector tools with a wildcard in the server position. The classifier is
+active in cloud sessions; it denied a session's attempt to attach a second repository.
 
-### Findings from the first cloud session, 2026-09-08
+### Installing the tooling in the cloud
 
-A cloud session against `life-ddrinka` could not run `uv sync`. Its GitHub access is
-scoped to the attached repository, so fetching the pinned tooling from the private
-`ddrinka/Life` repository failed with "could not read Username for https://github.com".
-A plain `git ls-remote` against Life failed the same way while one against life-ddrinka
-succeeded. Until this is fixed no `life` command runs in the cloud, so no routine can.
-Options, in the order to try:
+A cloud session on 2026-09-08 could not run `uv sync`. Its GitHub access was scoped to
+the attached repository, so fetching the pin from the then-private `ddrinka/Life` failed
+with "could not read Username for https://github.com". A single-repository session on
+2026-09-24 hit the same error from the SessionStart hook. It also showed what a
+single-repository session gets: it starts inside the state repository, so the project
+`.claude/settings.json` loads, the deny list blocks, and the SessionStart hook runs. A
+session with several repositories starts in their parent directory and loads none of it.
+The same session's `add_repo` for Life was denied by the auto-mode classifier as a
+permission grant.
 
-1. Store a fine-grained GitHub token with read access to Life as an API credential on
-   the cloud environment for host `github.com`. The proxy injects it and the repository
-   stays private. Unknown whether the injection covers git over HTTPS as well as the API.
-2. Attach Life as a second repository and have the session-start hook check out the
-   pinned tag in that clone and point `uv` at it through `[tool.uv.sources]`. Keeps the
-   pin, at the cost of a hook that knows where the cloud puts a second repository.
-3. Make Life public. It holds no personal data, and the local-rules template carries a
-   placeholder number, but its agent conventions mention Doug and his repositories.
+Doug decided on 2026-09-24 to make Life public. It holds no personal data, and a history
+scan that day found no secrets. Public, the pin installs without credentials, and
+routines attach only the state repository. A session that edits the tooling has Life
+attached when it starts.
 
-The claude.ai connectors allow one Gmail connection per user, and Doug has two accounts:
-`ddrinka@gmail.com` for personal mail and `ddrinka@ergoncapitalmanagement.com` for work.
-Both are reached through `gmail-mcp-relay` in
+The claude.ai connectors allow one Gmail connection per user, and Doug has two accounts,
+personal and work. Both are reached through `gmail-mcp-relay` in
 [ddrinka/Infrastructure](https://github.com/ddrinka/Infrastructure), a Cloudflare Worker
 that fronts Google's Gmail MCP server with one path and one bearer token per account and
 holds the Google refresh tokens itself. A session adds it as a plain HTTP MCP server; on
