@@ -353,9 +353,9 @@ Both are reached through `gmail-mcp-relay` in
 that fronts Google's Gmail MCP server with one path and one bearer token per account and
 holds the Google refresh tokens itself. A session adds it as a plain HTTP MCP server; on
 the web the cloud environment's API credential carries the bearer, and locally a header
-does. The relay is deployed and passes every Google check except one: Google's Gmail MCP
-server refuses tool calls until the billing project is enrolled in the Workspace
-Developer Preview Program, which takes days to approve. Consumer configuration and the
+does. The environment attaches one credential per host, so both accounts' relay tokens
+hold the same value and one credential reaches both paths. The relay is deployed, and
+both accounts passed live tool calls on 2026-09-15. Consumer configuration and the
 remaining steps are in that repository's `gmail-mcp-relay/IMPLEMENTATION.md`. The
 claude.ai Gmail connector stays off in sessions that use the relay.
 
