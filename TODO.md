@@ -41,7 +41,7 @@ Phases and gates are explained in IMPLEMENTATION.md. "human" marks a step Doug d
 - [ ] Write the GitHub ingestion skill: turn open issues and PRs assigned to the owner into tasks
 - [x] Decide how to reach both Gmail accounts: the gmail-mcp-relay in ddrinka/Infrastructure
 - [x] Add the relay's bearer credential and `.mcp.json` entries; one token set for both accounts reaches both
-- [ ] Verify both Gmail accounts from a session on the Life environment: `gmail-relay-cutover` in life-ddrinka
+- [x] Verify both Gmail accounts from a session on the Life environment: `gmail-relay-cutover` in life-ddrinka
 - [ ] Let one relay token open a chosen set of accounts, so others can scope an environment to some of theirs
 - [ ] Connect the Google Calendar connector to the cloud environment (human)
 - [ ] Create a Google user for agents and share the Drive folders that hold project detail (human)
