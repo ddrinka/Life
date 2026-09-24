@@ -8,7 +8,7 @@ description: Read every focus item and area in full, fix what topic work missed,
 This run exists to see the whole picture. Topic work reads one file at a time and misses
 what crosses files; this run reads them all.
 
-1. `git pull --rebase`, `uv run life now`, `uv run life journal "run weekly-review started"`.
+1. `git switch main` if the checkout is on a detached HEAD, `git pull --rebase`, `uv run life now`, `uv run life journal "run weekly-review started"`.
 2. Read `GUIDE.md`, `LOCAL.md`, and `MAP.md` in full.
 3. Read every focus project, task, and area in full: `uv run life query --tier focus --format paths`
    and `uv run life query --kind area --format paths`. Read every item whose review date

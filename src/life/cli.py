@@ -10,6 +10,7 @@ import sys
 from pathlib import Path
 
 from . import brief as brief_mod
+from . import guard as guard_mod
 from . import journal as journal_mod
 from . import lint as lint_mod
 from . import mapgen
@@ -59,6 +60,8 @@ def build_parser() -> argparse.ArgumentParser:
     p_journal.add_argument("text", nargs="?", help="the entry; slugs it touches go in backticks")
     p_journal.add_argument("--denied", action="store_true", help="read a PermissionDenied hook payload from stdin")
     p_journal.add_argument("--now", type=_datetime, default=None, help="override the current time, for tests")
+
+    sub.add_parser("guard", help="PreToolUse hook: journal and deny calls the tree's deny rules block")
 
     p_init = sub.add_parser("init", help="create a state repository at --root")
     p_init.add_argument("--owner", required=True, help="the person's name")
@@ -120,6 +123,8 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.command == "journal":
         return _journal(root, args)
+    if args.command == "guard":
+        return _guard(root)
     if args.command == "brief":
         if args.path:
             print(brief_mod.brief_path(root, args.now).relative_to(root))
@@ -201,6 +206,24 @@ def _cursor(root: Path, args) -> int:
         return 2
     brief_mod.write_cursor(root, args.key, value)
     print(f"{args.key} = {value}")
+    return 0
+
+
+def _guard(root: Path) -> int:
+    """Runs from a hook that must not fail; on any error it allows, and settings still deny."""
+    try:
+        result = guard_mod.check(root, sys.stdin.read())
+    except Exception as exc:
+        print(f"guard could not check the call: {exc}", file=sys.stderr)
+        return 0
+    if result is None:
+        return 0
+    decision, payload = result
+    try:
+        journal_mod.append(root, journal_mod.denied_entry(payload))
+    except Exception as exc:
+        print(f"could not write the denial to the journal: {exc}", file=sys.stderr)
+    print(json.dumps(decision))
     return 0
 
 

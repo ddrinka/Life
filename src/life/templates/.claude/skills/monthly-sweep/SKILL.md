@@ -5,7 +5,7 @@ description: Archive done files, prune stale links, enforce the size limits, and
 
 # Monthly sweep
 
-1. `git pull --rebase`, `uv run life now`, `uv run life journal "run monthly-sweep started"`.
+1. `git switch main` if the checkout is on a detached HEAD, `git pull --rebase`, `uv run life now`, `uv run life journal "run monthly-sweep started"`.
 2. Read `GUIDE.md`, `LOCAL.md`, and `MAP.md` in full.
 3. `uv run life query --status done --format paths` lists what to archive. For each file:
    clear its `related` list, remove its slug from every other file's `related`, then

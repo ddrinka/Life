@@ -131,7 +131,8 @@ A state repository contains the tree described in `GUIDE.md` plus four managed p
 repository stays internally consistent and versioned.
 
 The SessionStart hook runs `uv sync`, so every session and every scheduled run has the
-pinned CLI on the path. The routine attaches only the state repository; the tooling
+pinned CLI on the path. A cloud checkout starts on a detached HEAD, so each
+skill runs `git switch main` before `git pull --rebase`. The routine attaches only the state repository; the tooling
 arrives through the pin. Attaching the tooling repository as a second repository would
 give the run the default branch rather than a release, so the routine does not do that.
 
@@ -315,17 +316,29 @@ the owner's number from `LOCAL.md` frontmatter and takes no recipient argument, 
 allow list admits only that command. Every other route out is denied, including `curl`,
 the connectors' send tools, and web fetch.
 
-A `PermissionDenied` hook runs `life journal --denied`, which appends the blocked call
-to today's journal entry. A blocked injection attempt then shows up in the next brief
-instead of vanishing. Denials that happen because the classifier itself failed are not
-reported through this hook.
+A `PermissionDenied` hook runs `life journal --denied`, which appends a call the
+classifier blocked to today's journal. That hook does not fire for a `permissions.deny`
+block, so a `PreToolUse` hook on Bash, WebFetch, and WebSearch runs `life guard` first.
+PreToolUse fires before permission rules. `life guard` reads the same deny list from
+`.claude/settings.json`, splits a Bash command into its simple commands with `shlex`,
+and on a match journals the call and returns a deny decision. On any error it allows,
+and the deny rules in settings still block, so the rules stay the backstop and the hook
+only adds the record. The command ends in `|| true` because a hook that exits 2 blocks
+the call, and a failed `uv run` must not block every command. A blocked injection
+attempt then shows up in the next brief instead of vanishing.
 
 `LOCAL.md` carries frontmatter the tooling reads: `owner`, `timezone` for journal
 timestamps, and `sms` for delivery. The prose below it stays free-form.
 
-One fact is not documented and needs a test in Phase 3: whether `permissions.deny`
-patterns match connector tools with a wildcard in the server position. The classifier is
-active in cloud sessions; it denied a session's attempt to attach a second repository.
+Deny rules accept a glob over the whole tool name, so `mcp__*__trash*` matches the trash
+tools on every server, and a tool a glob deny matches is removed from the agent's
+context. Allow rules are stricter: their server segment must be literal. Both are in the
+permissions documentation. `mcp__*__update*` also removes the relay's
+`update_message_labels`; archiving under `LOCAL.md` uses the label tools instead.
+
+The classifier is active in cloud sessions. It denied an `add_repo` for Life until the
+state repository's `CLAUDE.md` gained an owner-written rule allowing it, after which a
+single-repository session attached Life and a private repository named in `links`.
 
 ### Installing the tooling in the cloud
 

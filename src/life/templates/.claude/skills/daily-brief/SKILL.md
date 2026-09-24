@@ -9,7 +9,7 @@ Read `GUIDE.md`, `LOCAL.md`, and `MAP.md` in full before anything else. This run
 the always-read layer only; it does not open project files unless a journal entry since
 the last brief makes one necessary.
 
-1. `git pull --rebase`, then `uv run life now` to establish the time in the owner's zone.
+1. `git switch main` if the checkout is on a detached HEAD, then `git pull --rebase`, then `uv run life now` to establish the time in the owner's zone.
 2. `uv run life journal "run daily-brief started"`.
 3. `uv run life brief` prints the material: the time, journal entries since the last
    brief, and the map.

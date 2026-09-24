@@ -134,7 +134,7 @@ they already know about has also failed.
 
 Agents commit straight to `main`. Sessions and scheduled runs can overlap, so:
 
-1. `git pull --rebase` before the first write.
+1. `git pull --rebase` before the first write, after `git switch main` on a detached HEAD.
 2. Commit after each logical change, and push right away.
 3. If the push is rejected, rebase and push again. If `MAP.md` conflicts, regenerate it.
 4. Update `cursors/runs.json` last.

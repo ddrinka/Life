@@ -9,6 +9,7 @@
       "Bash(git add *)",
       "Bash(git mv *)",
       "Bash(git commit *)",
+      "Bash(git switch main)",
       "Bash(git pull --rebase)",
       "Bash(git pull --rebase origin main)",
       "Bash(git push)",
@@ -114,6 +115,17 @@
           {
             "type": "command",
             "command": "uv sync --quiet"
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Bash|WebFetch|WebSearch",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "uv run life guard || true"
           }
         ]
       }

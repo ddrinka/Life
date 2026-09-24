@@ -1,6 +1,6 @@
 [project]
 name = "life"
-version = "0.2.0"
+version = "0.3.1"
 description = "Tooling that keeps a person's life organized through agents."
 requires-python = ">=3.13"
 dependencies = [
