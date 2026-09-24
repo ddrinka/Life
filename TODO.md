@@ -32,10 +32,12 @@ Phases and gates are explained in IMPLEMENTATION.md. "human" marks a step Doug d
 - [ ] Run the weekly review by hand in `life-ddrinka`
 - [ ] Create Doug's cloud environment with the state repository and network settings (human)
 - [x] Scan Life's history for secrets and personal data before making it public
-- [ ] Make Life public so the pin installs in a cloud session without credentials (human)
-- [ ] Confirm a single-repository session installs the pin once Life is public
+- [x] Make Life public so the pin installs in a cloud session without credentials (human)
+- [x] Confirm a single-repository session installs the pin once Life is public
 - [ ] Create the daily and weekly routines, each invoking its skill
 - [ ] Test whether `mcp__*__send*` deny patterns match connector tools
+- [ ] Journal deny-list denials too: the PermissionDenied hook fires only for classifier denials, so find a hook that sees deny-rule blocks
+- [ ] Bump `version` in `pyproject.toml` with each tag; v0.3.0 installs as 0.2.0
 - [ ] Gate: a routine run commits a journal entry and a fresh MAP.md unattended
 
 ## Phase 4: Ingestion, each item independent
