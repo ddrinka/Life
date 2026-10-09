@@ -29,7 +29,7 @@ Phases and gates are explained in IMPLEMENTATION.md. "human" marks a step Doug d
 - [x] Build `life brief`: print the brief material, the time, the journal since the last brief, and the map
 - [x] Define `cursors/runs.json` fields
 - [x] Run the daily brief by hand in `life-ddrinka` as the first dry run
-- [ ] Run the weekly review by hand in `life-ddrinka`
+- [x] Run the weekly review by hand in `life-ddrinka`
 - [x] Create Doug's cloud environment with the state repository and network settings (human)
 - [x] Scan Life's history for secrets and personal data before making it public
 - [x] Make Life public so the pin installs in a cloud session without credentials (human)
