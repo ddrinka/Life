@@ -35,19 +35,25 @@ Phases and gates are explained in IMPLEMENTATION.md. "human" marks a step Doug d
 - [x] Make Life public so the pin installs in a cloud session without credentials (human)
 - [x] Confirm a single-repository session installs the pin once Life is public
 - [x] Start each skill with `git switch main`, since cloud checkouts are detached
-- [ ] Create the daily and weekly routines, each invoking its skill
+- [ ] Launch `life-ddrinka` in an Ergon workspace by hand: login, auto mode, pin over SSH
+- [ ] Port this repository's dev container to `life-ddrinka`, with `defaultMode: auto` and `aws-knowledge` denied
+- [ ] Make Life private again (human)
+- [ ] Add a Workspaces schedule: resume, run a fixed prompt in a fresh session, suspend
 - [x] Confirm `mcp__*__send*` deny patterns match connector tools: documented for deny rules
 - [x] Journal deny-list denials too: `life guard` in a PreToolUse hook
 - [x] Bump `version` in `pyproject.toml` with each tag; v0.3.1 fixes the 0.2.0 string
-- [ ] Gate: a routine run commits a journal entry and a fresh MAP.md unattended
+- [ ] Gate: a scheduled run commits a journal entry and a fresh MAP.md unattended
 
 ## Phase 4: Ingestion, each item independent
 
-- [ ] Write the GitHub ingestion skill: turn open issues and PRs assigned to the owner into tasks
+- [x] Write the GitHub ingestion skill: turn open issues and PRs assigned to the owner into tasks
+- [ ] Check that `gh` in an Ergon workspace sees `ddrinka/*` before releasing the ingestion step
+- [x] Probe the Gmail relay from `life-ddrinka`: real tool names and response shapes, content scrubbed
 - [x] Decide how to reach both Gmail accounts: the gmail-mcp-relay in ddrinka/Infrastructure
 - [x] Add the relay's bearer credential and `.mcp.json` entries; one token set for both accounts reaches both
 - [x] Verify both Gmail accounts from a session on the Life environment: `gmail-relay-cutover` in life-ddrinka
-- [ ] Let one relay token open a chosen set of accounts, so others can scope an environment to some of theirs
+- [ ] Move the Gmail relay to a Lambda behind Workspaces' private API, keyed to the workspace's repo
+- [ ] Sign the relay's MCP requests with the instance role, through a host or stdio proxy
 - [ ] Connect the Google Calendar connector to the cloud environment (human)
 - [ ] Create a Google user for agents and share the Drive folders that hold project detail (human)
 - [ ] Google Drive reading through the connector, for documents named in `links`
@@ -55,7 +61,7 @@ Phases and gates are explained in IMPLEMENTATION.md. "human" marks a step Doug d
 - [ ] Write the Gmail ingestion skill: put summaries and message IDs into tasks and the journal
 - [ ] Build Gmail triage: label and archive one message at a time per LOCAL.md, with journal entries
 - [ ] Test that a planted instruction in an email is logged in the journal and not acted on
-- [ ] Replace wildcard connector deny patterns with the connectors' real tool names
+- [x] Deny the relay's Gmail tools that trash, mark spam, or change a whole thread
 - [ ] Gate: the brief mentions an item from each source
 
 ## Phase 5: Delivery

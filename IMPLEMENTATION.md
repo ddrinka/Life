@@ -165,6 +165,39 @@ point for brevity, and leave depth for Doug to ask for. Delivery starts with SMS
 voice calls with text-to-speech, then two-way voice. The delivery channel is separate
 from the brief so the same text can go anywhere.
 
+### Moving the runtime to Ergon Workspaces
+
+Doug decided on 2026-10-15 to stop building on Claude Code cloud sessions. Auto mode and
+the project settings do not load when a session holds more than one repository, and there
+is no workable way to hand a session a GitHub credential. The sections below that describe
+routines and cloud environments record the setup being replaced.
+
+The replacement runs `life-ddrinka` as an Ergon workspace, one repository per workspace,
+on EC2 in the Ergon AWS account. Work and personal data share that infrastructure. Life
+goes private again, since other people running it depended on Claude Code cloud. The plan:
+
+- **Dev container.** `life-ddrinka` gets a dev container built from the same base as this
+  repository. The base sets `defaultMode: bypassPermissions` in user settings, so
+  `life-ddrinka` must set `defaultMode: auto` at project scope and keep the classifier.
+  The base also registers the `aws-knowledge` MCP server at user scope, which sends
+  queries out and must be denied. Post-create leaves a tracked `CLAUDE.md` alone, so the
+  boundaries survive. Workspaces binds the `ergon-claude` and `ergon-auth` volumes to the
+  user's EFS directory, and this base mounts `agentic-claude`; a test launch shows whether
+  the Claude login persists. With Life private, `uv sync` must fetch the pin over SSH.
+- **Scheduler.** A schedule resumes the workspace, starts a fresh Claude session with a
+  fixed prompt set in the schedule, and suspends when the run ends. Workspaces' nightly
+  pass already resumes `via: schedule`. A fixed prompt typed into a session is a change to
+  Workspaces' rule against prompts from outside. A `claudeai` login can lapse between
+  runs; the `api` profile avoids that with the Console key.
+- **Gmail relay on AWS.** The relay moves from Cloudflare to a Lambda behind Workspaces'
+  private REST API. It identifies the caller as the instance API does, through the
+  instance role's session ARN, and also requires the workspace's repository to be
+  `ddrinka/life-ddrinka` and its owner to be Doug's pairing. That replaces the bearer
+  token. Claude Code cannot sign MCP requests with SigV4, so a host-side proxy or a stdio
+  MCP proxy in the container signs them with the instance role. API Gateway REST buffers
+  responses and times out at 29 seconds, which suits request and response tool calls.
+  The caller this proves is any process in that workspace, not the agent alone.
+
 ### Runtime: Claude Code routines
 
 Scheduled runs are Claude Code routines. A routine runs a Claude Code session against the
@@ -253,6 +286,8 @@ uv run life --root ../life-me init --owner "Name" --timezone America/Denver --sm
 uv run life upgrade v0.2.0
 ```
 
+`life github` lists assigned GitHub work against the tree; see GitHub ingestion below.
+
 `life journal` appends one entry to today's file, using the owner's timezone from
 `LOCAL.md` frontmatter. It creates the file with its date header when the day has none.
 `--denied` reads a `PermissionDenied` hook payload from stdin and records the blocked
@@ -307,9 +342,21 @@ inside them are allowed, one at a time, each with a journal entry naming what wa
 
 Sending, replying, forwarding, trashing, deleting, changing or deleting events, inviting
 anyone, and bulk operations stay denied, because an injected message could otherwise
-reach a third party or destroy mail the owner needs. The connector deny patterns stay
-broad until Phase 4 finds the connectors' real tool names, and then they become
-server-specific.
+reach a third party or destroy mail the owner needs.
+
+A probe on 2026-10-09 listed the relay's Gmail tools in a `life-ddrinka` session. Deny
+rules name those tools, with the server segment left as `*` because server names differ
+per person:
+
+- `apply_sensitive_message_label` and `apply_sensitive_thread_label` take `TRASH` or
+  `SPAM`, so they trash mail.
+- `mark_message_spam` and `mark_thread_spam` move mail out of the inbox unlabeled.
+- `label_thread`, `unlabel_thread`, and any `batch_` tool change more than one message.
+
+That leaves `label_message`, `unlabel_message`, `create_label`, `create_draft`, the
+`untrash_` and `unmark_` tools, and the read tools. Archiving is `unlabel_message` with
+`INBOX`. The broad patterns such as `mcp__*__send*` stay, because they cover the
+calendar connector and any server added later.
 
 The delivery path is designed so the agent never chooses a recipient. `life send` reads
 the owner's number from `LOCAL.md` frontmatter and takes no recipient argument, and the
@@ -388,6 +435,38 @@ file. Keeping the brief in the tree lets the next run see what the owner was alr
 and `last_monthly_sweep`. `life cursor` reads and sets them, `life now` prints the time in
 the owner's zone, and lint rejects any other key.
 
+### GitHub ingestion
+
+`life github` runs two `gh search` calls, one for issues and one for pull requests,
+because GitHub search no longer accepts a query that mixes the two. It compares the open
+items assigned to the owner with each file's `source` and prints three groups:
+
+- **New.** Untracked items changed within `--days`, 30 by default. Each gets a suggested
+  slug, `<repo>-<number>`, or `<owner>-<repo>-<number>` when that slug is taken. A
+  suggested parent is any open project or area whose `links` names the repository.
+- **Tracked.** Open files whose source is still assigned and open.
+- **Gone.** Open files whose source is a GitHub issue or PR that is no longer in that list.
+
+A done or archived file with the item's source counts as tracked, so finishing a task
+here does not bring it back. `--input` reads saved search JSON instead of running `gh`,
+which the tests use.
+
+Doug chose the 30-day window on 2026-10-09. He had 194 open assigned items then, 146 in
+one repository and 64 last touched in 2020 or 2021. One task per item would have more than
+doubled the tree. Older items stay in GitHub, and a project reaches them through `links`.
+
+The `ingest-github` skill turns the listing into task files and closes tasks whose item
+closed or was reassigned. The daily brief runs its Ingest section first, so a new item
+reaches the brief through the journal. Ingestion keeps no cursor, because it reconciles
+against the full assigned list on every run.
+
+`life github` does not work in a Claude Code cloud session. The 2026-10-09 probe found
+that `gh` there has no valid token, GraphQL is refused, and REST search is refused because
+sessions are bound to their attached repositories. In an Ergon workspace, `gh` goes
+through the Ergon Workspaces GitHub App's user token, which sees only repositories where
+the App is installed. Whether that covers `ddrinka/*` is not yet checked. The daily
+brief's ingestion step should not ship in a release until it is.
+
 ### Semantic index
 
 The semantic index is deferred. Frontmatter queries and `grep` cover the first few hundred
@@ -465,6 +544,8 @@ There are none yet.
 - The immutability check reads `git status` only, so it cannot see an edit that has
   already been committed to a past journal day or an archived file. When the tree is not
   inside a git checkout, the check is skipped without notice.
+- `life github` sees only items assigned to the owner, not pull requests awaiting the
+  owner's review. Each search returns at most 1,000 items.
 - Lint does not check the size of archived files, which stay frozen as they were.
 - Lint does not check that a `Decisions` line is dated, or that today's journal file was
   only appended to.

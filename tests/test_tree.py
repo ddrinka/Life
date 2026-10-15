@@ -507,7 +507,7 @@ def test_brief_material_and_cursors(tree: Path, capsys):
 def test_init_ships_skills(tmp_path: Path):
     root = tmp_path / "state"
     assert main(["--root", str(root), "init", "--owner", "T", "--timezone", "UTC", "--version", "v0.3.0", "--no-lock"]) == 0
-    for name in ("daily-brief", "weekly-review", "monthly-sweep"):
+    for name in ("daily-brief", "weekly-review", "monthly-sweep", "ingest-github"):
         text = (root / ".claude" / "skills" / name / "SKILL.md").read_text()
         assert text.startswith(f"---\nname: {name}\n")
     assert (root / "briefs").is_dir()
@@ -562,3 +562,86 @@ def test_guard_command_allows_and_survives_bad_input(tree: Path, monkeypatch, ca
     monkeypatch.setattr("sys.stdin", io.StringIO("not json"))
     assert main(["--root", str(tree), "guard"]) == 0
     assert capsys.readouterr().out == ""
+
+
+def _gh(repo: str, number: int, updated: str = "2026-09-01T12:00:00Z", pr: bool = False) -> dict:
+    kind = "pull" if pr else "issues"
+    return {
+        "url": f"https://github.com/{repo}/{kind}/{number}", "number": number, "title": f"Item {number}",
+        "repository": {"name": repo.split("/")[1], "nameWithOwner": repo},
+        "isPullRequest": pr, "updatedAt": updated,
+    }
+
+
+def _set_source(tree: Path, rel: str, url: str) -> None:
+    path = tree / rel
+    path.write_text(path.read_text().replace("---\n\n", f"source: {url}\n---\n\n", 1))
+
+
+def test_github_new_items_get_slug_parent_and_domain(tree: Path):
+    from life.github import reconcile
+    records = [_gh("acme/billing", 7), _gh("acme/billing", 8, "2026-06-01T00:00:00Z"), _gh("other/Tools", 3, pr=True)]
+    report = reconcile(tree, records, TODAY)
+    assert (report.assigned, report.recent) == (3, 2)
+    new = {n.item.ref: n for n in report.new}
+    assert set(new) == {"acme/billing#7", "other/Tools#3"}
+    assert (new["acme/billing#7"].slug, new["acme/billing#7"].parents, new["acme/billing#7"].domain) == (
+        "billing-7", ["billing-migration"], "work")
+    assert (new["other/Tools#3"].slug, new["other/Tools#3"].parents, new["other/Tools#3"].domain) == ("tools-3", [], None)
+
+
+def test_github_slug_collisions_take_the_owner(tree: Path):
+    from life.github import reconcile
+    report = reconcile(tree, [_gh("a/Repo", 1), _gh("b/Repo", 1)], TODAY)
+    assert [n.slug for n in report.new] == ["repo-1", "b-repo-1"]
+    (tree / "tasks" / "repo-1.md").write_text((tree / "tasks" / "renew-passport.md").read_text())
+    assert [n.slug for n in reconcile(tree, [_gh("a/Repo", 1)], TODAY).new] == ["a-repo-1"]
+
+
+def test_github_tracked_gone_and_done(tree: Path):
+    from life.github import reconcile
+    _set_source(tree, "tasks/deck-quotes.md", "https://github.com/acme/billing/issues/7")
+    _set_source(tree, "tasks/renew-passport.md", "https://github.com/acme/billing/issues/9/")
+    _set_source(tree, "archive/projects/garage-shelves.md", "https://github.com/acme/billing/issues/10")
+    records = [_gh("acme/billing", 7, "2025-01-01T00:00:00Z"), _gh("acme/billing", 10)]
+    report = reconcile(tree, records, TODAY)
+    assert [(s, i.ref) for s, i in report.tracked] == [("deck-quotes", "acme/billing#7")]
+    assert report.gone == [("renew-passport", "https://github.com/acme/billing/issues/9")]
+    assert report.new == []
+
+
+def test_github_command(tree: Path, tmp_path: Path, capsys):
+    import json
+    data = tmp_path / "gh.json"
+    data.write_text(json.dumps([_gh("acme/billing", 7)]))
+    assert main(["--root", str(tree), "--today", "2026-09-08", "github", "--input", str(data), "--format", "json"]) == 0
+    out = json.loads(capsys.readouterr().out)
+    assert out["new"][0]["slug"] == "billing-7" and out["new"][0]["updated"] == "2026-09-01"
+    assert main(["--root", str(tree), "--today", "2026-09-08", "github", "--input", str(data)]) == 0
+    assert "slug: billing-7  parent: billing-migration  domain: work" in capsys.readouterr().out
+    data.write_text('[{"url": "x"}]')
+    assert main(["--root", str(tree), "github", "--input", str(data)]) == 1
+    assert "unexpected search record" in capsys.readouterr().err
+
+
+@pytest.mark.parametrize("tool, denied", [
+    ("mcp__gmail-work__apply_sensitive_message_label", True),
+    ("mcp__gmail-work__apply_sensitive_thread_label", True),
+    ("mcp__gmail-personal__mark_thread_spam", True),
+    ("mcp__gmail-personal__batch_apply_sensitive_message_labels", True),
+    ("mcp__gmail-personal__label_thread", True),
+    ("mcp__gmail-personal__unlabel_thread", True),
+    ("mcp__gmail-personal__trash_message", True),
+    ("mcp__gmail-personal__label_message", False),
+    ("mcp__gmail-personal__unlabel_message", False),
+    ("mcp__gmail-personal__create_draft", False),
+    ("mcp__gmail-personal__create_label", False),
+    ("mcp__gmail-personal__untrash_message", False),
+    ("mcp__gmail-personal__search_threads", False),
+])
+def test_template_denies_gmail_writes(tool, denied):
+    import json
+    from life.guard import matching_rule
+    from life.scaffold import templates_dir
+    rules = json.loads((templates_dir() / ".claude" / "settings.json").read_text())["permissions"]["deny"]
+    assert (matching_rule(rules, tool, {}) is not None) == denied

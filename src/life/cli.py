@@ -10,6 +10,7 @@ import sys
 from pathlib import Path
 
 from . import brief as brief_mod
+from . import github as github_mod
 from . import guard as guard_mod
 from . import journal as journal_mod
 from . import lint as lint_mod
@@ -90,6 +91,11 @@ def build_parser() -> argparse.ArgumentParser:
     p_cursor.add_argument("value", nargs="?", help="ISO timestamp to store")
     p_cursor.add_argument("--now", type=_datetime, default=None, help="store the current time, or this time")
     p_cursor.add_argument("--set-now", action="store_true", help="store the current time")
+
+    p_gh = sub.add_parser("github", help="compare assigned GitHub issues and PRs with the tasks tracking them")
+    p_gh.add_argument("--days", type=int, default=github_mod.DEFAULT_DAYS, help="only untracked items changed within this many days are new")
+    p_gh.add_argument("--input", type=Path, default=None, help="read gh search JSON from this file instead of running gh")
+    p_gh.add_argument("--format", choices=("text", "json"), default="text")
     return parser
 
 
@@ -136,6 +142,8 @@ def main(argv: list[str] | None = None) -> int:
         return 0
     if args.command == "cursor":
         return _cursor(root, args)
+    if args.command == "github":
+        return _github(root, args)
 
     if args.command == "lint":
         problems = lint_mod.lint(root, args.today)
@@ -206,6 +214,17 @@ def _cursor(root: Path, args) -> int:
         return 2
     brief_mod.write_cursor(root, args.key, value)
     print(f"{args.key} = {value}")
+    return 0
+
+
+def _github(root: Path, args) -> int:
+    try:
+        records = json.loads(args.input.read_text()) if args.input else github_mod.fetch()
+        report = github_mod.reconcile(root, records, args.today, args.days)
+    except (OSError, json.JSONDecodeError, github_mod.GithubError) as exc:
+        print(f"github: {exc}", file=sys.stderr)
+        return 1
+    sys.stdout.write(github_mod.format_json(report) if args.format == "json" else github_mod.format_text(report))
     return 0
 
 

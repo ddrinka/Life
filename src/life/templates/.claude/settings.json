@@ -105,7 +105,12 @@
       "mcp__*__trash*",
       "mcp__*__share*",
       "mcp__*__accept*",
-      "mcp__*__decline*"
+      "mcp__*__decline*",
+      "mcp__*__apply_sensitive_*",
+      "mcp__*__mark_*spam*",
+      "mcp__*__batch_*",
+      "mcp__*__label_thread",
+      "mcp__*__unlabel_thread"
     ]
   },
   "hooks": {
